@@ -1,10 +1,27 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCheckinDto } from './dtos/create-checkin.dto';
+import { GamificationService } from '../gamification/gamification.service';
+import { AchievementsService } from '../gamification/achievements.service';
+import { QuestsService } from '../gamification/quests.service';
 
 @Injectable()
 export class CheckinService {
-  constructor(private prisma: PrismaService) {}
+  // Base de XP por check-in
+  private readonly BASE_XP_PER_CHECKIN = 10;
+  
+  // XP por página lida
+  private readonly XP_PER_PAGE = 1;
+  
+  // XP por minuto de leitura
+  private readonly XP_PER_MINUTE = 2;
+
+  constructor(
+    private prisma: PrismaService,
+    private gamificationService: GamificationService,
+    private achievementsService: AchievementsService,
+    private questsService: QuestsService,
+  ) {}
 
   // Buscar todos os checkins
   async findAll() {
@@ -122,7 +139,48 @@ export class CheckinService {
       throw new BadRequestException(`A página atual (${createCheckinDto.currentPage}) excede o total do livro (${book.pages})`);
     }
 
-    return this.prisma.checkin.create({
+    // Atualizar streak de leitura diária do usuário
+    const lastCheckInDate = user.lastCheckInDate;
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let newStreak = user.streak || 0;
+    
+    // Se o último check-in foi ontem, incrementar streak
+    if (lastCheckInDate) {
+      const lastCheckIn = new Date(lastCheckInDate);
+      // Comparar apenas as datas (sem considerar horário)
+      const lastDate = new Date(lastCheckIn.getFullYear(), lastCheckIn.getMonth(), lastCheckIn.getDate());
+      const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      if (lastDate.getTime() === yesterdayDate.getTime()) {
+        // Se o último check-in foi ontem, incrementar streak
+        newStreak += 1;
+      } else if (lastDate.getTime() < yesterdayDate.getTime()) {
+        // Se o último check-in foi antes de ontem, resetar streak
+        newStreak = 1;
+      } else if (lastDate.getTime() === todayDate.getTime()) {
+        // Se já fez check-in hoje, manter streak
+        newStreak = user.streak;
+      }
+    } else {
+      // Primeiro check-in
+      newStreak = 1;
+    }
+    
+    // Atualizar usuário com novo streak e data do último check-in
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        streak: newStreak,
+        lastCheckInDate: today,
+      },
+    });
+
+    // Criar o checkin
+    const checkin = await this.prisma.checkin.create({
       data: {
         user: {
           connect: { id: userId },
@@ -153,6 +211,52 @@ export class CheckinService {
         },
       },
     });
+
+    // Calcular XP ganho
+    const xpForPages = createCheckinDto.pagesRead * this.XP_PER_PAGE;
+    const xpForTime = createCheckinDto.minutesSpent * this.XP_PER_MINUTE;
+    const totalXp = this.BASE_XP_PER_CHECKIN + xpForPages + xpForTime;
+
+    // Conceder XP ao usuário
+    await this.gamificationService.addXp(userId, totalXp);
+
+    // Verificar conquistas relacionadas à leitura
+    await this.achievementsService.checkReadingAchievements(userId, createCheckinDto.pagesRead);
+    
+    // Verificar conquistas relacionadas a check-ins
+    await this.achievementsService.checkCheckinAchievements(userId);
+
+    // Verificar se há quests diárias relacionadas a check-ins para completar
+    try {
+      const dailyQuests = await this.questsService.getUserDailyQuests(userId);
+      for (const quest of dailyQuests) {
+        if (!quest.completed && quest.quest.title.toLowerCase().includes('check-in')) {
+          await this.questsService.completeDailyQuest(quest.questId, userId);
+        }
+      }
+    } catch (error) {
+      console.log('Erro ao verificar quests diárias:', error.message);
+    }
+
+    // Verificar se há quests semanais relacionadas a check-ins para completar
+    try {
+      const weeklyQuests = await this.questsService.getUserWeeklyQuests(userId);
+      for (const quest of weeklyQuests) {
+        if (!quest.completed && quest.quest.title.toLowerCase().includes('check-in')) {
+          await this.questsService.completeWeeklyQuest(quest.questId, userId);
+        }
+      }
+    } catch (error) {
+      console.log('Erro ao verificar quests semanais:', error.message);
+    }
+
+    return {
+      ...checkin,
+      gamification: {
+        xpEarned: totalXp,
+        streak: newStreak,
+      },
+    };
   }
 
   // Remover checkin

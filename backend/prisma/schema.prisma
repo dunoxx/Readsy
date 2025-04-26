@@ -15,12 +15,29 @@ model User {
   password          String?
   username          String?           @unique
   displayName       String
-  profilePicture    String?
+  profilePicture    String?           @default("https://i.pravatar.cc/300")
   backgroundPicture String?
   dateOfBirth       DateTime?
   country           String?
   language          Language          @default(pt)
   refreshToken      String?
+  role              Role              @default(MEMBER)
+  bio               String?
+  notifications     Json?             // Configurações de notificações
+  
+  // Campos de gamificação
+  level             Int               @default(1)
+  totalXp           Int               @default(0)
+  seasonXp          Int               @default(0)
+  coins             Int               @default(0)
+  streak            Int               @default(0)  // Sequência de dias com check-in
+  lastCheckInDate   DateTime?       // Data do último check-in
+  lastLevelUpAt     DateTime?       // Data da última subida de nível
+  suspended         Boolean           @default(false)
+  badges            UserBadge[]
+  achievements      UserAchievement[]
+  seasonRewards     SeasonReward[]
+  
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   books             Book[]
@@ -30,6 +47,10 @@ model User {
   createdChallenges Challenge[]
   userChallenges    UserChallenge[]
   leaderboardEntries LeaderboardEntry[]
+  completedGlobalChallenges UserGlobalChallenge[]
+  completedGroupChallenges  UserGroupChallenge[]
+  dailyQuests         UserDailyQuest[]
+  weeklyQuests        UserWeeklyQuest[]
 
   @@map("users")
 }
@@ -57,13 +78,18 @@ model Book {
 }
 
 model Group {
-  id          String        @id @default(uuid())
-  name        String
-  description String?
-  owner       User          @relation(fields: [ownerId], references: [id])
-  ownerId     String
-  createdAt   DateTime      @default(now())
-  members     GroupMember[]
+  id                String            @id @default(uuid())
+  name              String
+  description       String?
+  owner             User              @relation(fields: [ownerId], references: [id])
+  ownerId           String
+  createdAt         DateTime          @default(now())
+  members           GroupMember[]
+  groupChallenges   GroupChallenge[]
+  // Campos de gamificação para grupos
+  level             Int               @default(1)
+  totalXp           Int               @default(0)
+  seasonXp          Int               @default(0)
 
   @@map("groups")
 }
@@ -76,6 +102,10 @@ model GroupMember {
   userId    String
   role      Role     @default(MEMBER)
   joinedAt  DateTime @default(now())
+  
+  // Campos de gamificação para cada membro no grupo
+  contributionXp    Int      @default(0)
+  seasonContribution Int     @default(0)
 
   @@unique([groupId, userId])
   @@map("group_members")
@@ -85,6 +115,7 @@ enum Role {
   OWNER
   ADMIN
   MEMBER
+  USER
 }
 
 model Checkin {
@@ -97,6 +128,9 @@ model Checkin {
   minutesSpent Int
   currentPage Int?
   audioNoteUrl String?
+  // Campos para gamificação
+  xpEarned    Int      @default(0)
+  coinsEarned Int      @default(0)
   createdAt   DateTime @default(now())
 
   @@map("checkins")
@@ -112,6 +146,9 @@ model Challenge {
   startDate   DateTime
   endDate     DateTime
   createdAt   DateTime         @default(now())
+  // Campos para gamificação
+  xpReward    Int              @default(0)
+  coinsReward Int              @default(0)
   books       ChallengeBook[]
   participants UserChallenge[]
 
@@ -144,6 +181,9 @@ model UserChallenge {
   completed    Boolean   @default(false)
   completedAt  DateTime?
   joinedAt     DateTime  @default(now())
+  // Campos para gamificação
+  xpEarned     Int       @default(0)
+  coinsEarned  Int       @default(0)
 
   @@unique([userId, challengeId])
   @@map("user_challenges")
@@ -155,7 +195,256 @@ model LeaderboardEntry {
   userId    String
   score     Int
   season    String
+  // Campos para critérios de desempate
+  checkIns  Int      @default(0)
+  challenges Int     @default(0)
+  streak    Int      @default(0)
   createdAt DateTime @default(now())
 
   @@map("leaderboard_entries")
+}
+
+// Modelos para o sistema de gamificação
+
+model ChallengeTemplate {
+  id               String              @id @default(uuid())
+  name             String
+  description      String?
+  icon             String              @default("🎯")
+  baseXpReward     Int
+  baseCoinsReward  Int                 @default(0)
+  type             TemplateType
+  requirements     Json                // Armazena condições para completar o desafio
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  userChallenges   UserGlobalChallenge[]
+  groupChallenges  GroupChallenge[]
+
+  @@map("challenge_templates")
+}
+
+enum TemplateType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  SPECIAL
+}
+
+model UserGlobalChallenge {
+  id                 String            @id @default(uuid())
+  user               User              @relation(fields: [userId], references: [id])
+  userId             String
+  challengeTemplate  ChallengeTemplate @relation(fields: [challengeTemplateId], references: [id])
+  challengeTemplateId String
+  completedAt        DateTime          @default(now())
+  xpEarned           Int
+  coinsEarned        Int
+  season             String
+
+  @@unique([userId, challengeTemplateId, season])
+  @@map("user_global_challenges")
+}
+
+model GroupChallenge {
+  id                 String             @id @default(uuid())
+  group              Group              @relation(fields: [groupId], references: [id])
+  groupId            String
+  challengeTemplate  ChallengeTemplate  @relation(fields: [challengeTemplateId], references: [id])
+  challengeTemplateId String
+  createdAt          DateTime           @default(now())
+  endDate            DateTime
+  createdBy          String             // ID do usuário que criou o desafio
+  xpReward           Int                @default(100)
+  userCompletions    UserGroupChallenge[]
+
+  @@map("group_challenges")
+}
+
+model UserGroupChallenge {
+  id               String         @id @default(uuid())
+  user             User           @relation(fields: [userId], references: [id])
+  userId           String
+  groupChallenge   GroupChallenge @relation(fields: [groupChallengeId], references: [id])
+  groupChallengeId String
+  completedAt      DateTime       @default(now())
+  xpEarned         Int
+
+  @@unique([userId, groupChallengeId])
+  @@map("user_group_challenges")
+}
+
+model Season {
+  id            String          @id @default(uuid())
+  name          String          // Ex: "2024-Spring"
+  displayName   String          // Ex: "Primavera 2024"
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean         @default(false)
+  completed     Boolean         @default(false)
+  rewardsIssued Boolean         @default(false)
+  rewards       SeasonReward[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("seasons")
+}
+
+model LevelDefinition {
+  id        String   @id @default(uuid())
+  level     Int      @unique
+  xpRequired Int
+  rewards   Json?    // Recompensas ao subir para este nível (moedas, badges, etc)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("level_definitions")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  category    BadgeCategory
+  rarity      BadgeRarity
+  createdAt   DateTime    @default(now())
+  users       UserBadge[]
+  
+  @@map("badges")
+}
+
+enum BadgeCategory {
+  READING
+  CHECKIN
+  CHALLENGE
+  GROUP
+  SPECIAL
+}
+
+enum BadgeRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  achievementId String
+  progress      Int         @default(0)
+  completed     Boolean     @default(false)
+  completedAt   DateTime?
+  
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model Achievement {
+  id          String            @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  goal        Int               // Valor a ser atingido
+  xpReward    Int
+  coinsReward Int
+  badgeReward String?           // ID do badge que será concedido
+  createdAt   DateTime          @default(now())
+  users       UserAchievement[]
+  
+  @@map("achievements")
+}
+
+model SeasonReward {
+  id            String   @id @default(uuid())
+  season        Season   @relation(fields: [seasonId], references: [id])
+  seasonId      String
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  rank          Int
+  coinsRewarded Int
+  badgesRewarded Json?    // Lista de IDs de badges concedidos
+  rewardedAt    DateTime @default(now())
+  
+  @@unique([seasonId, userId])
+  @@map("season_rewards")
+}
+
+model DailyQuest {
+  id             String               @id @default(uuid())
+  title          String
+  description    String?
+  emoji          String               @default("🎯")
+  baseXpReward   Int
+  baseCoinReward Int                  @default(0)
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  assignments    UserDailyQuest[]
+
+  @@map("daily_quests")
+}
+
+model WeeklyQuest {
+  id             String                @id @default(uuid())
+  title          String
+  description    String?
+  emoji          String                @default("🎯")
+  baseXpReward   Int
+  baseCoinReward Int                   @default(0)
+  isActive       Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  assignments    UserWeeklyQuest[]
+
+  @@map("weekly_quests")
+}
+
+model UserDailyQuest {
+  id            String     @id @default(uuid())
+  user          User       @relation(fields: [userId], references: [id])
+  userId        String
+  quest         DailyQuest @relation(fields: [questId], references: [id])
+  questId       String
+  assignedAt    DateTime   @default(now())
+  expiresAt     DateTime
+  completed     Boolean    @default(false)
+  completedAt   DateTime?
+  xpEarned      Int?
+  coinsEarned   Int?
+
+  @@unique([userId, questId, assignedAt])
+  @@map("user_daily_quests")
+}
+
+model UserWeeklyQuest {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  quest         WeeklyQuest @relation(fields: [questId], references: [id])
+  questId       String
+  assignedAt    DateTime    @default(now())
+  expiresAt     DateTime
+  completed     Boolean     @default(false)
+  completedAt   DateTime?
+  xpEarned      Int?
+  coinsEarned   Int?
+
+  @@unique([userId, questId, assignedAt])
+  @@map("user_weekly_quests")
 } 

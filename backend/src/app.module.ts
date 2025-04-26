@@ -9,6 +9,7 @@ import { CheckinModule } from './modules/checkin/checkin.module';
 import { ChallengeModule } from './modules/challenge/challenge.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AdminModule } from './modules/admin/admin.module';
     ChallengeModule,
     LeaderboardModule,
     AdminModule,
+    GamificationModule,
   ],
   controllers: [],
   providers: [],

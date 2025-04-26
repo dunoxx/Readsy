@@ -6,6 +6,7 @@ import { JoinChallengeDto } from './dtos/join-challenge.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { CreateChallengeTemplateDto, TemplateType } from './dto/create-challenge-template.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -207,5 +208,124 @@ export class ChallengeController {
     @Req() req: RequestWithUser
   ) {
     return this.challengeService.updateProgress(challengeId, req.user.id, progress);
+  }
+
+  /* Endpoints para Desafios Globais (Templates) */
+
+  @ApiOperation({ summary: 'Criar um novo modelo de desafio global (admin)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Modelo de desafio global criado com sucesso',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('global/create')
+  createChallengeTemplate(@Body() createChallengeTemplateDto: CreateChallengeTemplateDto) {
+    return this.challengeService.createChallengeTemplate(createChallengeTemplateDto);
+  }
+
+  @ApiOperation({ summary: 'Listar todos os modelos de desafios globais' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de modelos de desafios globais retornada com sucesso',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('global/list')
+  getAllChallengeTemplates() {
+    return this.challengeService.getAllChallengeTemplates();
+  }
+
+  @ApiOperation({ summary: 'Listar modelos de desafios globais por tipo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de modelos de desafios globais retornada com sucesso',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('global/list/:type')
+  getChallengeTemplatesByType(@Param('type') type: TemplateType) {
+    return this.challengeService.getChallengeTemplatesByType(type);
+  }
+
+  @ApiOperation({ summary: 'Buscar modelo de desafio global por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Modelo de desafio global retornado com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Modelo de desafio global não encontrado',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('global/:id')
+  getChallengeTemplateById(@Param('id') id: string) {
+    return this.challengeService.getChallengeTemplateById(id);
+  }
+
+  @ApiOperation({ summary: 'Completar um desafio global' })
+  @ApiResponse({
+    status: 200,
+    description: 'Desafio global completado com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Modelo de desafio global não encontrado',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('global/complete/:templateId')
+  completeGlobalChallenge(
+    @Param('templateId') templateId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.challengeService.completeGlobalChallenge(templateId, req.user.id);
+  }
+
+  /* Endpoints para Desafios de Grupo */
+
+  @ApiOperation({ summary: 'Criar um desafio de grupo baseado em modelo global' })
+  @ApiResponse({
+    status: 201,
+    description: 'Desafio de grupo criado com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Grupo ou modelo de desafio não encontrado',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('groups/:groupId/challenge/create')
+  createGroupChallenge(
+    @Param('groupId') groupId: string,
+    @Body() createGroupChallengeDto: { templateId: string; endDate: Date },
+    @Req() req: RequestWithUser,
+  ) {
+    return this.challengeService.createGroupChallengeFromTemplate(
+      groupId,
+      createGroupChallengeDto.templateId,
+      req.user.id,
+      createGroupChallengeDto.endDate,
+    );
+  }
+
+  @ApiOperation({ summary: 'Completar um desafio de grupo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Desafio de grupo completado com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Desafio de grupo não encontrado',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('groups/:groupId/challenge/:challengeId/complete')
+  completeGroupChallenge(
+    @Param('challengeId') challengeId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.challengeService.completeGroupChallenge(challengeId, req.user.id);
   }
 } 

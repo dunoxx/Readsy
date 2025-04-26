@@ -5,6 +5,134 @@ Todas as alterações notáveis no projeto Readsy serão documentadas neste arqu
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/spec/v2.0.0.html).
 
+## [0.4.0] - 2024-05-15
+
+### Adicionado
+
+#### Módulos do Backend
+- Implementação completa do módulo `ChallengeModule` para gerenciamento de desafios de leitura:
+  - CRUD completo para desafios
+  - API para participação em desafios
+  - Controle de progresso dos participantes
+  - Regras de negócio para garantir que apenas o criador possa editar/remover
+  - Validação para datas de início e término
+
+- Implementação completa do módulo `GroupModule` para grupos de leitura:
+  - CRUD completo para grupos
+  - API para participação em grupos
+  - Gestão de membros com diferentes papéis (OWNER, MEMBER)
+  - Validações para garantir que apenas o proprietário possa editar/remover
+
+- Implementação completa do módulo `LeaderboardModule`:
+  - Ranking global de usuários
+  - Ranking individual de usuários
+  - Sistema de temporadas (trimestral)
+  - Cálculo de posições baseado na pontuação
+  - Endpoint para adicionar pontos ao usuário
+
+#### Endpoints e APIs
+- **Challenge API**:
+  - `GET /api/challenges`: Listar todos os desafios
+  - `GET /api/challenges/public`: Listar desafios públicos
+  - `GET /api/challenges/:id`: Buscar desafio por ID
+  - `GET /api/challenges/created-by/:userId`: Buscar desafios criados por um usuário
+  - `GET /api/challenges/participated-by/:userId`: Buscar desafios em que um usuário participa
+  - `POST /api/challenges`: Criar novo desafio
+  - `PATCH /api/challenges/:id`: Atualizar desafio existente
+  - `DELETE /api/challenges/:id`: Remover desafio
+  - `POST /api/challenges/:challengeId/join`: Participar de um desafio
+  - `POST /api/challenges/:challengeId/leave`: Sair de um desafio
+  - `PATCH /api/challenges/:challengeId/progress`: Atualizar progresso em um desafio
+
+- **Group API**:
+  - `GET /api/groups`: Listar todos os grupos
+  - `GET /api/groups/:id`: Buscar grupo por ID
+  - `GET /api/groups/member/:userId`: Buscar grupos em que um usuário participa
+  - `GET /api/groups/owner/:userId`: Buscar grupos criados por um usuário
+  - `POST /api/groups`: Criar novo grupo
+  - `PATCH /api/groups/:id`: Atualizar grupo existente
+  - `DELETE /api/groups/:id`: Remover grupo
+  - `POST /api/groups/:groupId/join`: Entrar em um grupo
+  - `POST /api/groups/:groupId/leave`: Sair de um grupo
+
+- **Leaderboard API**:
+  - `GET /api/leaderboard`: Obter ranking global
+  - `GET /api/leaderboard/user/:userId`: Obter ranking de um usuário específico
+  - `GET /api/leaderboard/me`: Obter ranking do usuário autenticado
+  - `POST /api/leaderboard/add-points/:userId`: Adicionar pontos para um usuário
+
+#### Melhorias de Segurança e Validação
+- Todas as rotas protegidas com `JwtAuthGuard`
+- Validação avançada de DTOs para todos os novos endpoints
+- Verificações de permissão (apenas criador/proprietário pode editar/remover)
+- Validação de datas para garantir coerência temporal
+
+#### Documentação
+- Documentação Swagger para todos os novos endpoints
+- Descrições detalhadas de parâmetros e respostas
+- Marcação de rotas que requerem autenticação
+
+### Modificado
+- Melhoria na definição de tipos com uso de interfaces específicas (ex: `RequestWithUser`)
+- Otimização das consultas Prisma para inclusão de entidades relacionadas
+- Padronização de formatos de resposta e tratamento de erros em todos os módulos
+
+### Próximos Passos
+- Implementação do frontend em Next.js para as novas funcionalidades
+- Sistema de upload de imagens para livros e perfis de usuário
+- Sistema de notificações para atividades em grupos e desafios
+- Implementação de estatísticas de leitura e relatórios
+
+## [0.3.5] - 2024-05-08
+
+### Adicionado
+
+#### Frontend (Next.js)
+- Implementação de páginas de Login (`/login`) e Cadastro (`/signup`) com Next.js App Router
+- Gerenciamento de sessão usando Zustand
+- Integração de login tradicional e social (Google OAuth)
+- Middleware de proteção de rotas privadas
+- Hook `useAuth` para controle de sessão
+- Componentes de formulário e botão personalizados
+- Página inicial de dashboard protegida
+
+## [0.3.0] - 2024-05-01
+
+### Adicionado
+
+#### Sistema de Autenticação
+- Implementação completa de autenticação JWT com access e refresh tokens
+- Adição do campo `refreshToken` ao modelo User no Prisma
+- Criação de estratégias para autenticação JWT
+- Implementação de login social via Google (OAuth2)
+- Proteção de rotas sensíveis com JwtAuthGuard
+
+#### Módulos e Serviços
+- AuthModule com funcionalidades completas de autenticação
+- AuthService para gerenciamento de tokens e autenticação
+- Estratégias de autenticação (JWT, JWT Refresh, Google)
+- Guards para proteção de rotas
+
+#### Endpoints de Autenticação
+- `POST /api/auth/signup`: Cadastro de novos usuários
+- `POST /api/auth/login`: Login com email e senha
+- `POST /api/auth/refresh`: Renovação de tokens
+- `POST /api/auth/logout`: Revogação de refresh token
+- `GET /api/auth/google`: Redirecionamento para autenticação Google
+- `GET /api/auth/google/callback`: Callback de autenticação Google
+
+### Modificado
+- Proteção das rotas de criação e atualização de Books
+- Proteção das rotas de Checkins
+- Atualização do README com informações sobre autenticação
+- Melhorias na documentação Swagger (adição de Bearer Auth)
+- Atualização das dependências para suporte a JWT e OAuth2
+
+### Próximos Passos
+- Implementação de permissões baseadas em perfil
+- Upload de imagens para perfil e capas de livros
+- Desenvolvimento do frontend em Next.js
+
 ## [0.2.0] - 2024-04-30
 
 ### Adicionado
@@ -119,39 +247,59 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
-## [0.3.0] - 2024-05-01
+## [0.5.0] - 2024-05-22
 
 ### Adicionado
 
-#### Sistema de Autenticação
-- Implementação completa de autenticação JWT com access e refresh tokens
-- Adição do campo `refreshToken` ao modelo User no Prisma
-- Criação de estratégias para autenticação JWT
-- Implementação de login social via Google (OAuth2)
-- Proteção de rotas sensíveis com JwtAuthGuard
+#### Sistema de Gamificação
+- Implementação completa do módulo `GamificationModule` para gerenciar o sistema de gamificação:
+  - Sistema de níveis e XP baseado na sequência de Fibonacci
+  - Limite máximo de nível (Level 10) com trava de XP
+  - Sistema de temporadas (Primavera, Verão, Outono, Inverno)
+  - Recompensas de Coins ao subir de nível
+  - Premiação de temporada com distribuição de Coins para os melhores jogadores
+  - Critérios de desempate no Leaderboard
 
-#### Módulos e Serviços
-- AuthModule com funcionalidades completas de autenticação
-- AuthService para gerenciamento de tokens e autenticação
-- Estratégias de autenticação (JWT, JWT Refresh, Google)
-- Guards para proteção de rotas
+- Implementação do sistema de Desafios Globais e de Grupo:
+  - Modelos de desafios com XP e Coins configuráveis baseados em Fibonacci
+  - Desafios por temporada com recompensas
+  - Desafios internos de grupo com contribuição para o ranking do grupo
+  - Diferentes tipos de desafios (diários, semanais, mensais e especiais)
 
-#### Endpoints de Autenticação
-- `POST /api/auth/signup`: Cadastro de novos usuários
-- `POST /api/auth/login`: Login com email e senha
-- `POST /api/auth/refresh`: Renovação de tokens
-- `POST /api/auth/logout`: Revogação de refresh token
-- `GET /api/auth/google`: Redirecionamento para autenticação Google
-- `GET /api/auth/google/callback`: Callback de autenticação Google
+#### Novas APIs
+- **Gamification API**:
+  - `GET /api/gamification/status`: Obter status de gamificação do usuário
+  - `GET /api/gamification/status/:userId`: Obter status de gamificação de um usuário específico
+  - `POST /api/gamification/add-xp`: Adicionar XP para um usuário
+  - `POST /api/gamification/reset-season`: Resetar temporada (admin)
+  - `GET /api/gamification/level-rewards`: Obter tabela de recompensas por nível
+  - `GET /api/gamification/challenge-options`: Obter opções de XP e Coins para desafios
 
-### Modificado
-- Proteção das rotas de criação e atualização de Books
-- Proteção das rotas de Checkins
-- Atualização do README com informações sobre autenticação
-- Melhorias na documentação Swagger (adição de Bearer Auth)
-- Atualização das dependências para suporte a JWT e OAuth2
+- **Global Challenge API**:
+  - `POST /api/challenges/global/create`: Criar novo modelo de desafio global
+  - `GET /api/challenges/global/list`: Listar todos os modelos de desafios globais
+  - `GET /api/challenges/global/list/:type`: Listar modelos de desafios globais por tipo
+  - `GET /api/challenges/global/:id`: Buscar modelo de desafio global por ID
+  - `POST /api/challenges/global/complete/:templateId`: Completar um desafio global
+
+- **Group Challenge API**:
+  - `POST /api/challenges/groups/:groupId/challenge/create`: Criar desafio de grupo baseado em modelo global
+  - `POST /api/challenges/groups/:groupId/challenge/:challengeId/complete`: Completar um desafio de grupo
+
+#### Melhorias de Segurança e Validação
+- Validação de entradas usando class-validator para todos os novos endpoints
+- Proteção de rotas sensíveis usando JwtAuthGuard
+- Verificações para evitar XP infinito e respeitar o nível máximo
+- Validação para garantir que XP e Coins em desafios sigam as sequências de Fibonacci
+
+#### Documentação
+- Documentação Swagger atualizada para todos os novos endpoints
+- Atualização do CHANGELOG com as novas implementações
+- Descrições detalhadas de parâmetros e respostas
+- Exemplos de payload para todos os endpoints
 
 ### Próximos Passos
-- Implementação de permissões baseadas em perfil
-- Upload de imagens para perfil e capas de livros
-- Desenvolvimento do frontend em Next.js 
+- Implementação do frontend em Next.js para o sistema de gamificação
+- Interface para visualização de progresso, níveis e badges
+- Dashboard de gamificação para usuários
+- Sistema de notificações para conquistas e subidas de nível 
