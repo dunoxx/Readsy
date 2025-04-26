@@ -253,3 +253,200 @@ curl -X POST http://localhost:3001/api/auth/logout \
 - Desenvolvimento do frontend
 - Integração com APIs externas (OpenLibrary, Google Books)
 - Monetização via Stripe 
+
+## Frontend (Next.js)
+
+O frontend do Readsy foi desenvolvido utilizando Next.js 14 com App Router, oferecendo uma interface moderna e responsiva para a plataforma.
+
+### Principais Páginas
+
+- **/login**: Página de autenticação (email/senha ou Google)
+- **/cadastro**: Página de registro de novos usuários
+- **/dashboard**: Painel principal do usuário (área protegida)
+- **/livros**: Gerenciamento da biblioteca pessoal (área protegida)
+- **/perfil**: Configurações do perfil do usuário (área protegida)
+- **/desafios**: Visualização e participação em desafios de leitura (área protegida)
+- **/grupos**: Participação em grupos de leitura (área protegida)
+
+### Sistema de Autenticação no Frontend
+
+O sistema de autenticação no frontend foi implementado utilizando as seguintes tecnologias:
+
+- **Zustand**: Gerenciamento de estado global com persistência local
+- **Axios**: Integração com APIs de autenticação do backend
+- **React Hook Form + Zod**: Validação de formulários de login/cadastro
+- **Next.js Middleware**: Proteção de rotas e redirecionamentos
+- **JWT**: Armazenamento seguro e renovação de tokens
+
+#### Gerenciamento de Estado (Zustand)
+
+O estado de autenticação é gerenciado centralmente através de uma store Zustand:
+
+```tsx
+// Exemplo simplificado da store de autenticação
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  refreshToken: string | null;
+  
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshAccessToken: () => Promise<boolean>;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      refreshToken: null,
+      
+      login: async (credentials) => {
+        // Implementação da lógica de login...
+      },
+      
+      logout: async () => {
+        // Implementação da lógica de logout...
+      },
+      
+      refreshAccessToken: async () => {
+        // Lógica de renovação do token...
+      }
+    }),
+    {
+      name: 'readsy-auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        refreshToken: state.refreshToken
+      })
+    }
+  )
+);
+```
+
+#### Hook de Autenticação
+
+O sistema expõe um hook `useAuth` para facilitar o uso em componentes:
+
+```tsx
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+interface UseAuthOptions {
+  required?: boolean;
+  redirectIfFound?: boolean;
+  redirectTo?: string;
+  redirectAuthenticatedTo?: string;
+}
+
+export function useAuth(options: UseAuthOptions = {}) {
+  const {
+    required = false,
+    redirectIfFound = false,
+    redirectTo = '/login',
+    redirectAuthenticatedTo = '/dashboard'
+  } = options;
+  
+  const router = useRouter();
+  const { user, token, login, logout } = useAuthStore();
+  
+  useEffect(() => {
+    // Redireciona para login se autenticação for obrigatória e usuário não estiver logado
+    if (required && !user) {
+      router.push(redirectTo);
+    }
+    
+    // Redireciona para dashboard se usuário já estiver autenticado
+    if (redirectIfFound && user) {
+      router.push(redirectAuthenticatedTo);
+    }
+  }, [user, required, redirectIfFound, redirectTo, redirectAuthenticatedTo, router]);
+  
+  return { user, token, login, logout, isAuthenticated: !!user };
+}
+```
+
+#### Proteção de Rotas
+
+As rotas protegidas são gerenciadas pelo middleware do Next.js:
+
+```tsx
+// middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('auth-token')?.value;
+  
+  // Rotas que requerem autenticação
+  const protectedRoutes = ['/dashboard', '/livros', '/perfil', '/desafios', '/grupos'];
+  
+  // Rotas públicas apenas para visitantes não autenticados
+  const guestOnlyRoutes = ['/login', '/cadastro'];
+  
+  // Verifica se é rota protegida e usuário não está autenticado
+  if (protectedRoutes.some(route => pathname.startsWith(route)) && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  
+  // Verifica se é rota apenas para visitantes e usuário está autenticado
+  if (guestOnlyRoutes.some(route => pathname.startsWith(route)) && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+  
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/livros/:path*',
+    '/perfil/:path*',
+    '/desafios/:path*',
+    '/grupos/:path*',
+    '/login', 
+    '/cadastro'
+  ],
+};
+```
+
+#### Fluxo de Autenticação
+
+1. **Login tradicional**:
+   - Usuário acessa a página de login (/login)
+   - Insere credenciais (email/senha)
+   - O frontend envia requisição para o backend (/api/auth/login)
+   - Após validação, os tokens JWT (access e refresh) são armazenados no estado global
+   - Usuário é redirecionado para o dashboard
+
+2. **Login com Google**:
+   - Usuário clica no botão "Entrar com Google"
+   - É redirecionado para a página de autorização do Google
+   - Após autorização, retorna para o callback configurado
+   - O backend processa o código de autorização e gera tokens JWT
+   - Os tokens são armazenados e o usuário é redirecionado para o dashboard
+
+3. **Renovação automática de tokens**:
+   - Quando o access token expira, o frontend utiliza o refresh token para obter um novo
+   - Se a renovação falhar, o usuário é redirecionado para o login
+
+4. **Proteção de rotas**:
+   - Middleware verifica a presença e validade do token
+   - Redireciona para o login se o token não existir ou for inválido
+   - Redireciona para o dashboard se um usuário autenticado tentar acessar páginas públicas
+
+### Componentes de UI
+
+O frontend utiliza componentes da biblioteca shadcn/ui para uma interface consistente e acessível:
+
+- Formulários com validação em tempo real
+- Componentes de feedback (toast, alertas)
+- Indicadores de carregamento
+- Layout responsivo (mobile-first)
+- Temas claro/escuro 
