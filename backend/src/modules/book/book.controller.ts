@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus
 import { BookService } from './book.service';
 import { CreateBookDto } from './dtos/create-book.dto';
 import { UpdateBookDto } from './dtos/update-book.dto';
+import { UpdateBookStatusDto } from './dtos/update-book-status.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -61,6 +62,26 @@ export class BookController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.update(id, updateBookDto);
+  }
+
+  @ApiOperation({ summary: 'Atualizar status do livro' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Status do livro atualizado com sucesso'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Livro não encontrado'
+  })
+  @ApiResponse({ 
+    status: 403, 
+    description: 'Acesso negado - usuário não é o proprietário do livro'
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateBookStatusDto, @Req() req) {
+    return this.bookService.updateStatus(id, dto, req.user);
   }
 
   @ApiOperation({ summary: 'Remover livro' })

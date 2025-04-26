@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookDto } from './dtos/create-book.dto';
 import { UpdateBookDto } from './dtos/update-book.dto';
+import { UpdateBookStatusDto } from './dtos/update-book-status.dto';
 
 @Injectable()
 export class BookService {
@@ -88,6 +89,39 @@ export class BookService {
         coverImage: updateBookDto.coverImage,
         isbn: updateBookDto.isbn,
         pages: updateBookDto.pages,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+          },
+        },
+      },
+    });
+  }
+
+  // Atualizar status do livro
+  async updateStatus(id: string, dto: UpdateBookStatusDto, user: any) {
+    // Verificar se o livro existe
+    const book = await this.prisma.book.findUnique({
+      where: { id },
+    });
+
+    if (!book) {
+      throw new NotFoundException(`Livro com ID ${id} não encontrado`);
+    }
+
+    // Verificar se o usuário é o proprietário do livro
+    if (book.createdById !== user.id) {
+      throw new ForbiddenException('Você não tem permissão para atualizar este livro');
+    }
+
+    return this.prisma.book.update({
+      where: { id },
+      data: { 
+        status: dto.status 
       },
       include: {
         createdBy: {

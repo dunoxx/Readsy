@@ -247,6 +247,18 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.2.1] - 2024-06-05
+
+### Adicionado
+- Campo `status` no modelo Book (enum BookStatus: READING, FINISHED, ABANDONED, PLANNING).
+- Novo endpoint `PATCH /api/books/:id/status` para atualizar status de leitura.
+- Validação de status nos Tipos de Quest `FINISH_BOOK` e `UPDATE_BOOK_STATUS`.
+- Atualização do Prisma Schema e da documentação Swagger.
+- Verificação de autorização (apenas o proprietário do livro pode alterar seu status).
+
+### Próximos Passos
+- Implementar sistema de Timeline e Convites de Amigos para completar QuestTypes futuros.
+
 ## [0.6.2] - 2024-06-03
 
 ### Adicionado

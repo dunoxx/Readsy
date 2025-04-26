@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QuestType } from './dto/quest-type.enum';
+import { BookStatus } from '../../modules/book/dtos/update-book-status.dto';
 
 @Injectable()
 export class QuestValidatorService {
@@ -99,15 +100,14 @@ export class QuestValidatorService {
    * Valida se o usuário finalizou ao menos um livro
    */
   private async validateFinishBook(userId: string, count: number): Promise<boolean> {
-    // Lógica para verificar se o usuário finalizou livros
-    // Implementação depende de como os livros são marcados como finalizados
+    // Verificar se o usuário finalizou livros definindo o status como FINISHED
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     
     const finishedBooks = await this.prisma.book.count({
       where: {
         userId,
-        status: 'COMPLETED',
+        status: BookStatus.FINISHED,
         updatedAt: {
           gte: weekAgo,
         },
@@ -164,6 +164,7 @@ export class QuestValidatorService {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
+    // Verificar se houve alteração do campo status de qualquer livro do usuário
     const updatedBooks = await this.prisma.book.count({
       where: {
         userId,

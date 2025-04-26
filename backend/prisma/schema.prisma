@@ -61,6 +61,13 @@ enum Language {
   es
 }
 
+enum BookStatus {
+  READING
+  FINISHED
+  ABANDONED
+  PLANNING
+}
+
 model Book {
   id          String     @id @default(uuid())
   title       String
@@ -68,6 +75,7 @@ model Book {
   coverImage  String?
   isbn        String?
   pages       Int?
+  status      BookStatus @default(READING)
   createdAt   DateTime   @default(now())
   createdBy   User       @relation(fields: [createdById], references: [id])
   createdById String
