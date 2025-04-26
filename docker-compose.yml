@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: readsy-backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/readsy
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - readsy-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: readsy-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://backend:3001
+    networks:
+      - readsy-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: readsy-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=readsy
+    networks:
+      - readsy-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: readsy-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - readsy-network
+    restart: unless-stopped
+
+networks:
+  readsy-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data: 
