@@ -117,4 +117,41 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - N/A (versão inicial)
 
 ### Correções
-- N/A (versão inicial) 
+- N/A (versão inicial)
+
+## [0.3.0] - 2024-05-01
+
+### Adicionado
+
+#### Sistema de Autenticação
+- Implementação completa de autenticação JWT com access e refresh tokens
+- Adição do campo `refreshToken` ao modelo User no Prisma
+- Criação de estratégias para autenticação JWT
+- Implementação de login social via Google (OAuth2)
+- Proteção de rotas sensíveis com JwtAuthGuard
+
+#### Módulos e Serviços
+- AuthModule com funcionalidades completas de autenticação
+- AuthService para gerenciamento de tokens e autenticação
+- Estratégias de autenticação (JWT, JWT Refresh, Google)
+- Guards para proteção de rotas
+
+#### Endpoints de Autenticação
+- `POST /api/auth/signup`: Cadastro de novos usuários
+- `POST /api/auth/login`: Login com email e senha
+- `POST /api/auth/refresh`: Renovação de tokens
+- `POST /api/auth/logout`: Revogação de refresh token
+- `GET /api/auth/google`: Redirecionamento para autenticação Google
+- `GET /api/auth/google/callback`: Callback de autenticação Google
+
+### Modificado
+- Proteção das rotas de criação e atualização de Books
+- Proteção das rotas de Checkins
+- Atualização do README com informações sobre autenticação
+- Melhorias na documentação Swagger (adição de Bearer Auth)
+- Atualização das dependências para suporte a JWT e OAuth2
+
+### Próximos Passos
+- Implementação de permissões baseadas em perfil
+- Upload de imagens para perfil e capas de livros
+- Desenvolvimento do frontend em Next.js 

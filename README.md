@@ -175,6 +175,77 @@ http://localhost:3001/api/docs
 - Grupos de leitura
 - Sistema de pontuação e classificação
 
+## Autenticação e Segurança
+
+O Readsy implementa um sistema de autenticação completo utilizando JWT (JSON Web Tokens):
+
+- **Access Token**: Duração de 15 minutos para acesso às APIs protegidas
+- **Refresh Token**: Duração de 7 dias para renovação do access token
+
+Além do login tradicional com email e senha, o sistema oferece:
+- Login social via Google (OAuth2)
+- Proteção de rotas sensíveis
+- Armazenamento seguro de senhas com bcrypt
+
+### Configuração do OAuth2 (Google)
+
+Para configurar o login via Google:
+
+1. Acesse o [Google Developer Console](https://console.developers.google.com/)
+2. Crie um novo projeto
+3. Configure as credenciais OAuth2
+4. Adicione a URL de redirecionamento: `http://localhost:3001/api/auth/google/callback`
+5. Adicione as credenciais ao seu arquivo `.env`:
+
+```
+GOOGLE_CLIENT_ID="seu-client-id-aqui"
+GOOGLE_CLIENT_SECRET="seu-client-secret-aqui"
+GOOGLE_REDIRECT_URI="http://localhost:3001/api/auth/google/callback"
+```
+
+### Exemplo de Autenticação e Uso de APIs Protegidas
+
+```bash
+# Registrar um novo usuário
+curl -X POST http://localhost:3001/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@exemplo.com",
+    "password": "senha123",
+    "displayName": "Usuário Exemplo"
+  }'
+
+# Login (obter tokens)
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@exemplo.com",
+    "password": "senha123"
+  }'
+
+# Acessar uma rota protegida
+curl -X POST http://localhost:3001/api/books \
+  -H "Authorization: Bearer seu-access-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "O Senhor dos Anéis",
+    "author": "J.R.R. Tolkien",
+    "pages": 1178
+  }'
+
+# Renovar access token
+curl -X POST http://localhost:3001/api/auth/refresh \
+  -H "Authorization: Bearer seu-refresh-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "seu-refresh-token"
+  }'
+
+# Logout (revogar refresh token)
+curl -X POST http://localhost:3001/api/auth/logout \
+  -H "Authorization: Bearer seu-access-token"
+```
+
 ## Próximos Passos
 
 - Implementação de autenticação JWT/OAuth2

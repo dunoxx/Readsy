@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dtos/create-book.dto';
 import { UpdateBookDto } from './dtos/update-book.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('books')
 @Controller('books')
@@ -38,12 +39,12 @@ export class BookController {
     status: 201, 
     description: 'Livro criado com sucesso'
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createBookDto: CreateBookDto) {
-    // Temporariamente utilizando um ID fixo para o admin
-    // Em uma implementação real, isso seria obtido da autenticação
-    const adminId = 'admin-user-id'; 
-    return this.bookService.create(createBookDto, adminId);
+  create(@Body() createBookDto: CreateBookDto, @Req() req) {
+    // Usar o ID do usuário autenticado
+    return this.bookService.create(createBookDto, req.user.id);
   }
 
   @ApiOperation({ summary: 'Atualizar livro existente' })
@@ -55,6 +56,8 @@ export class BookController {
     status: 404, 
     description: 'Livro não encontrado'
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.update(id, updateBookDto);
@@ -69,6 +72,8 @@ export class BookController {
     status: 404, 
     description: 'Livro não encontrado'
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
