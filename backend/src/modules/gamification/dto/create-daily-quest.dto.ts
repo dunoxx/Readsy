@@ -1,5 +1,7 @@
-import { IsNotEmpty, IsString, IsOptional, IsInt, IsIn, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsInt, IsIn, Min, Max, IsEnum, IsObject, ValidateIf } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { QuestType } from './quest-type.enum';
 
 export class CreateDailyQuestDto {
   @ApiProperty({
@@ -27,6 +29,26 @@ export class CreateDailyQuestDto {
   @IsOptional()
   @IsString()
   emoji?: string;
+
+  @ApiProperty({
+    description: 'Tipo da missão',
+    enum: QuestType,
+    example: QuestType.READ_PAGES,
+  })
+  @IsNotEmpty()
+  @IsEnum(QuestType)
+  questType: QuestType;
+
+  @ApiProperty({
+    description: 'Parâmetros específicos do tipo de missão',
+    example: { pages: 50 },
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  @ValidateIf(o => o.questType !== QuestType.CHECKIN_DAY)
+  @Type(() => Object)
+  parameters?: Record<string, any>;
 
   @ApiProperty({
     description: 'Quantidade de XP como recompensa da missão',

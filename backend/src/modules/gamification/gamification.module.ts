@@ -7,11 +7,12 @@ import { AchievementsController } from './achievements.controller';
 import { GamificationService } from './gamification.service';
 import { GamificationController } from './gamification.controller';
 import { LeaderboardModule } from '../leaderboard/leaderboard.module';
+import { QuestValidatorService } from './quest-validator.service';
 
 @Module({
   imports: [PrismaModule, LeaderboardModule],
   controllers: [QuestsController, AchievementsController, GamificationController],
-  providers: [QuestsService, AchievementsService, GamificationService],
-  exports: [QuestsService, AchievementsService, GamificationService],
+  providers: [QuestsService, AchievementsService, GamificationService, QuestValidatorService],
+  exports: [QuestsService, AchievementsService, GamificationService, QuestValidatorService],
 })
 export class GamificationModule {} 

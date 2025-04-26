@@ -247,6 +247,46 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.2] - 2024-06-03
+
+### Adicionado
+
+#### Sistema de Quests Inteligentes 
+- Implementação do Sistema de Tipos de Quest com enum `QuestType`
+- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
+- Suporte a parâmetros personalizados para cada tipo de missão
+- Validação específica de requisitos para cada tipo de quest
+- Validação automática de conclusão de quests baseada em ações do usuário
+- Verificação inteligente de requisitos para marcar quests como concluídas
+
+#### Melhorias no Sistema de Gamificação
+- Verificação automática de atividades do usuário para validar quests
+- Novas regras para completar quests baseadas no tipo específico
+- Validação de parâmetros necessários para cada tipo de quest ao criar novas
+- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
+
+#### Atualização Modelos de Dados
+- Adição do campo `questType` em DailyQuest e WeeklyQuest
+- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
+- Manutenção do campo `isActive` para controle de quests disponíveis
+
+#### Atualização de APIs
+- APIs existentes expandidas para incluir o tipo da quest e parâmetros
+- Melhor formatação das respostas de quest com informações completas
+- Validação mais robusta de entradas com class-validator
+
+### Modificado
+- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
+- Melhoria na lógica de atribuição de quests a usuários
+- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
+- Reformulação da lógica de sorteio de quests para usuários
+
+### Próximos Passos
+- Implementação de frontend específico para o sistema de quests inteligentes
+- Painéis de administração para gerenciamento de quests com configuração visual
+- Possibilidade de configurar sequências de quests progressivas
+- Sistema de achievements automatizados baseados em tipos de quests completadas
+
 ## [0.5.0] - 2024-05-22
 
 ### Adicionado
@@ -302,4 +342,44 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Implementação do frontend em Next.js para o sistema de gamificação
 - Interface para visualização de progresso, níveis e badges
 - Dashboard de gamificação para usuários
-- Sistema de notificações para conquistas e subidas de nível 
+- Sistema de notificações para conquistas e subidas de nível
+
+## [0.6.1] - 2024-05-28
+
+### Adicionado
+
+#### Sistema de Quests Inteligentes 
+- Implementação do Sistema de Tipos de Quest com enum `QuestType`
+- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
+- Suporte a parâmetros personalizados para cada tipo de missão
+- Validação específica de requisitos para cada tipo de quest
+- Validação automática de conclusão de quests baseada em ações do usuário
+- Verificação inteligente de requisitos para marcar quests como concluídas
+
+#### Melhorias no Sistema de Gamificação
+- Verificação automática de atividades do usuário para validar quests
+- Novas regras para completar quests baseadas no tipo específico
+- Validação de parâmetros necessários para cada tipo de quest ao criar novas
+- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
+
+#### Atualização Modelos de Dados
+- Adição do campo `questType` em DailyQuest e WeeklyQuest
+- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
+- Manutenção do campo `isActive` para controle de quests disponíveis
+
+#### Atualização de APIs
+- APIs existentes expandidas para incluir o tipo da quest e parâmetros
+- Melhor formatação das respostas de quest com informações completas
+- Validação mais robusta de entradas com class-validator
+
+### Modificado
+- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
+- Melhoria na lógica de atribuição de quests a usuários
+- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
+- Reformulação da lógica de sorteio de quests para usuários
+
+### Próximos Passos
+- Implementação de frontend específico para o sistema de quests inteligentes
+- Painéis de administração para gerenciamento de quests com configuração visual
+- Possibilidade de configurar sequências de quests progressivas
+- Sistema de achievements automatizados baseados em tipos de quests completadas 

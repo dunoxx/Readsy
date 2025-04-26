@@ -385,11 +385,26 @@ model SeasonReward {
   @@map("season_rewards")
 }
 
+enum QuestType {
+  CHECKIN_DAY
+  READ_PAGES
+  FINISH_BOOK
+  POST_TIMELINE
+  JOIN_GROUP_CHALLENGE
+  REACT_TO_POST
+  UPDATE_BOOK_STATUS
+  INVITE_FRIEND
+  CREATE_GROUP
+  COMPLETE_DAILY_QUESTS
+}
+
 model DailyQuest {
   id             String               @id @default(uuid())
   title          String
   description    String?
   emoji          String               @default("🎯")
+  questType      QuestType
+  parameters     Json?
   baseXpReward   Int
   baseCoinReward Int                  @default(0)
   isActive       Boolean              @default(true)
@@ -405,6 +420,8 @@ model WeeklyQuest {
   title          String
   description    String?
   emoji          String                @default("🎯")
+  questType      QuestType
+  parameters     Json?
   baseXpReward   Int
   baseCoinReward Int                   @default(0)
   isActive       Boolean               @default(true)
