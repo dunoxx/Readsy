@@ -247,6 +247,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.3] - 2024-06-08
+
+### Adicionado
+- Implementação do sistema de Timeline de Postagens.
+- Possibilidade de criar posts com ou sem spoiler.
+- Sistema de Reações a posts (LIKE, LOVE, LAUGH, WOW, SAD, ANGRY).
+- Proteção de rotas com autenticação JWT.
+- Paginação na listagem de posts da timeline.
+- Endpoint para remover reações de posts.
+- Atualização da documentação Swagger com todos os novos endpoints.
+
+### Próximos Passos
+- Exibir Timeline no frontend.
+- Sistema de notificações futuras baseado em reações e posts.
+
 ## [0.6.2.1] - 2024-06-05
 
 ### Adicionado

@@ -10,6 +10,7 @@ import { ChallengeModule } from './modules/challenge/challenge.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
     LeaderboardModule,
     AdminModule,
     GamificationModule,
+    PostModule,
   ],
   controllers: [],
   providers: [],
