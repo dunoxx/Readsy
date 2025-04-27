@@ -54,6 +54,7 @@ model User {
   posts               Post[]           // Relação com posts
   reactions           Reaction[]       // Relação com reações
   userQuests          UserQuest[]      // Relação com o novo sistema de quests
+  groupJoinRequests   GroupJoinRequest[] // Relação com solicitações de adesão a grupos
 
   @@map("users")
 }
@@ -97,11 +98,16 @@ model Group {
   id                String            @id @default(uuid())
   name              String
   description       String?
+  imageUrl          String?          // URL da imagem do grupo
+  isPublic          Boolean          @default(true)
+  requiresApproval  Boolean          @default(false)
   owner             User              @relation(fields: [ownerId], references: [id])
   ownerId           String
   createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   members           GroupMember[]
   groupChallenges   GroupChallenge[]
+  memberRequests    GroupJoinRequest[] // Novas solicitações de membros
   // Campos de gamificação para grupos
   level             Int               @default(1)
   totalXp           Int               @default(0)
@@ -118,10 +124,13 @@ model GroupMember {
   userId    String
   role      Role     @default(MEMBER)
   joinedAt  DateTime @default(now())
+  lastActivityAt DateTime @default(now()) // Última atividade do membro
   
   // Campos de gamificação para cada membro no grupo
   contributionXp    Int      @default(0)
   seasonContribution Int     @default(0)
+  points           Int      @default(0)   // Pontos no grupo (independente do XP da plataforma)
+  completedChallenges Int   @default(0)   // Número de desafios completados neste grupo
 
   @@unique([groupId, userId])
   @@map("group_members")
@@ -265,12 +274,18 @@ model GroupChallenge {
   id                 String             @id @default(uuid())
   group              Group              @relation(fields: [groupId], references: [id])
   groupId            String
-  challengeTemplate  ChallengeTemplate  @relation(fields: [challengeTemplateId], references: [id])
-  challengeTemplateId String
+  title              String             // Título do desafio
+  description        String?            // Descrição do desafio
+  type               QuestType          // Tipo de desafio usando QuestType existente
+  target             Int                // Meta (ex: número de páginas, dias de check-in)
+  bookId             String?            // ID do livro (opcional)
+  pointsReward       Int                // Pontos que o usuário ganha ao completar
+  frequency          ChallengeFrequency // Frequência do desafio
   createdAt          DateTime           @default(now())
   endDate            DateTime
   createdBy          String             // ID do usuário que criou o desafio
-  xpReward           Int                @default(100)
+  challengeTemplate  ChallengeTemplate? @relation(fields: [challengeTemplateId], references: [id])
+  challengeTemplateId String?
   userCompletions    UserGroupChallenge[]
 
   @@map("group_challenges")
@@ -551,4 +566,31 @@ model UserQuest {
   @@index([questId])
   @@index([completed])
   @@index([expiresAt])
+}
+
+// Novo modelo para solicitações de adesão ao grupo
+model GroupJoinRequest {
+  id        String   @id @default(uuid())
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  status    JoinRequestStatus @default(PENDING)
+  requestedAt DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@unique([groupId, userId])
+  @@map("group_join_requests")
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Nova enum para frequência de desafios
+enum ChallengeFrequency {
+  DAILY
+  WEEKLY
 } 

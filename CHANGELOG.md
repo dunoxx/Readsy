@@ -487,5 +487,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Implementado sistema de tratamento de empates técnicos para compartilhamento de posições
 - Otimização nas queries do sistema de ranking para melhor desempenho
 
+## Fase 0.8 - Módulo de Grupos (2024-XX-XX)
+
+### Adicionado
+- Implementação completa do módulo de grupos de leitura (GroupModule)
+- Criação, edição e gerenciamento de grupos
+- Sistema de membros e administração
+- Funcionalidade de transferência de propriedade do grupo
+- Sistema de desafios internos do grupo
+- Sistema de pontos e ranking interno
+- Rastreamento de atividades dos membros
+- APIs para gerenciamento completo de grupos
+
+### Alterado
+- Esquema do Prisma para suportar a estrutura de dados do grupo
+- Expandida a funcionalidade de desafios para incluir desafios específicos de grupo
+
+### Corrigido
+- Otimizado o cálculo de ranking para melhor performance em grupos grandes
+
 ## Versões Anteriores
 <!-- aqui viriam os changelogs anteriores -->
