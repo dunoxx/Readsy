@@ -10,7 +10,9 @@ import {
   Req, 
   Query, 
   HttpCode, 
-  HttpStatus 
+  HttpStatus,
+  ParseIntPipe,
+  DefaultValuePipe
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dtos/create-post.dto';
@@ -35,14 +37,54 @@ export class PostController {
     status: 200, 
     description: 'Lista de posts retornada com sucesso' 
   })
-  @ApiQuery({ name: 'page', required: false, description: 'Número da página', type: Number })
-  @ApiQuery({ name: 'limit', required: false, description: 'Itens por página', type: Number })
+  @ApiQuery({ 
+    name: 'limit', 
+    required: false, 
+    description: 'Número máximo de itens por página (máx: 50)', 
+    type: Number 
+  })
+  @ApiQuery({ 
+    name: 'cursor', 
+    required: false, 
+    description: 'ID do último post carregado (para paginação)', 
+    type: String 
+  })
   @Get()
   findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
+    @Query('cursor') cursor?: string,
   ) {
-    return this.postService.findAll(Number(page) || 1, Number(limit) || 20);
+    return this.postService.findAll(limit, cursor);
+  }
+
+  @ApiOperation({ summary: 'Listar posts de um usuário específico' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de posts do usuário retornada com sucesso' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuário não encontrado' 
+  })
+  @ApiQuery({ 
+    name: 'limit', 
+    required: false, 
+    description: 'Número máximo de itens por página (máx: 50)', 
+    type: Number 
+  })
+  @ApiQuery({ 
+    name: 'cursor', 
+    required: false, 
+    description: 'ID do último post carregado (para paginação)', 
+    type: String 
+  })
+  @Get('user/:userId')
+  findByUser(
+    @Param('userId') userId: string,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.postService.findByUser(userId, limit, cursor);
   }
 
   @ApiOperation({ summary: 'Buscar post por ID' })
@@ -63,6 +105,10 @@ export class PostController {
   @ApiResponse({ 
     status: 201, 
     description: 'Post criado com sucesso' 
+  })
+  @ApiResponse({ 
+    status: 429, 
+    description: 'Limite de posts excedido (máx: 3 a cada 30 minutos)' 
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

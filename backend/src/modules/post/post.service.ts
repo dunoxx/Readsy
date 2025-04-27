@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
@@ -8,14 +8,25 @@ import { CreateReactionDto } from './dtos/create-reaction.dto';
 export class PostService {
   constructor(private prisma: PrismaService) {}
 
-  // Buscar todos os posts (timeline pública)
-  async findAll(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
-    const take = limit;
+  // Buscar todos os posts (timeline pública) com paginação por cursor
+  async findAll(limit = 10, cursor?: string) {
+    // Validar o limite máximo de posts por requisição
+    const take = Math.min(limit, 50);
 
+    // Configurar condição para busca com cursor
+    const cursorCondition = cursor
+      ? {
+          cursor: {
+            id: cursor,
+          },
+          skip: 1, // Pular o próprio cursor
+        }
+      : {};
+
+    // Buscar os posts
     const posts = await this.prisma.post.findMany({
-      skip,
       take,
+      ...cursorCondition,
       orderBy: {
         createdAt: 'desc',
       },
@@ -42,15 +53,121 @@ export class PostService {
       },
     });
 
-    const totalPosts = await this.prisma.post.count();
+    // Verificar se há mais posts
+    const lastPost = posts[posts.length - 1];
+    const nextCursor = lastPost?.id || null;
+    
+    // Verificar se há mais itens após o último carregado
+    let hasNextPage = false;
+    if (posts.length === take) {
+      const nextItem = await this.prisma.post.findFirst({
+        where: {
+          createdAt: {
+            lt: lastPost.createdAt,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: { id: true },
+      });
+      hasNextPage = !!nextItem;
+    }
 
     return {
       data: posts,
       meta: {
-        currentPage: page,
-        itemsPerPage: limit,
-        totalItems: totalPosts,
-        totalPages: Math.ceil(totalPosts / limit),
+        nextCursor,
+        hasNextPage,
+      },
+    };
+  }
+
+  // Buscar posts de um usuário específico
+  async findByUser(userId: string, limit = 10, cursor?: string) {
+    // Validar o limite máximo de posts por requisição
+    const take = Math.min(limit, 50);
+
+    // Verificar se o usuário existe
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+    }
+
+    // Configurar condição para busca com cursor
+    const cursorCondition = cursor
+      ? {
+          cursor: {
+            id: cursor,
+          },
+          skip: 1, // Pular o próprio cursor
+        }
+      : {};
+
+    // Buscar os posts do usuário
+    const posts = await this.prisma.post.findMany({
+      where: {
+        userId,
+      },
+      take,
+      ...cursorCondition,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            profilePicture: true,
+          },
+        },
+        reactions: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Verificar se há mais posts
+    const lastPost = posts[posts.length - 1];
+    const nextCursor = lastPost?.id || null;
+    
+    // Verificar se há mais itens após o último carregado
+    let hasNextPage = false;
+    if (posts.length === take) {
+      const nextItem = await this.prisma.post.findFirst({
+        where: {
+          userId,
+          createdAt: {
+            lt: lastPost?.createdAt || new Date(),
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: { id: true },
+      });
+      hasNextPage = !!nextItem;
+    }
+
+    return {
+      data: posts,
+      meta: {
+        nextCursor,
+        hasNextPage,
       },
     };
   }
@@ -89,8 +206,36 @@ export class PostService {
     return post;
   }
 
+  // Verificar limite de posts (anti-flood)
+  async checkPostRateLimit(userId: string): Promise<boolean> {
+    // Definir período de 30 minutos atrás
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    
+    // Contar posts do usuário nos últimos 30 minutos
+    const recentPostsCount = await this.prisma.post.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: thirtyMinutesAgo,
+        },
+      },
+    });
+    
+    // Verificar se o usuário já atingiu o limite de 3 posts
+    return recentPostsCount < 3;
+  }
+
   // Criar novo post
   async create(createPostDto: CreatePostDto, userId: string) {
+    // Verificar limite de posts (anti-flood)
+    const canPost = await this.checkPostRateLimit(userId);
+    if (!canPost) {
+      throw new HttpException(
+        'Você atingiu o limite de 3 posts a cada 30 minutos.',
+        HttpStatus.TOO_MANY_REQUESTS
+      );
+    }
+
     return this.prisma.post.create({
       data: {
         content: createPostDto.content,

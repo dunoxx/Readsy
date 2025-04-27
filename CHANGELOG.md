@@ -247,6 +247,23 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.3.1] - 2024-06-10
+
+### Adicionado
+- Paginação com cursor na Timeline pública (`GET /api/posts`).
+- Endpoint para listar posts de um usuário (`GET /api/posts/user/:userId`).
+- Sistema Anti-Flood: Limite de 3 posts a cada 30 minutos por usuário.
+- Validação do limite máximo de itens por página (máx: 50).
+
+### Atualizado
+- Remoção do sistema de paginação por número de página em favor da paginação por cursor.
+- Documentação Swagger para todos os novos comportamentos e endpoints.
+- Melhor retorno de metadados para facilitar implementação de scroll infinito.
+
+### Próximos Passos
+- Exibir Timeline no frontend com scroll infinito.
+- Implementar notificações para reações em posts.
+
 ## [0.6.3] - 2024-06-08
 
 ### Adicionado
