@@ -1,59 +1,47 @@
-import { z } from 'zod';
+import * as Joi from 'joi';
 
-export const envSchema = z.object({
-  // Servidor
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().default(3001),
+export const envValidationSchema = Joi.object({
+  // Ambiente
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   
-  // Frontend
-  FRONTEND_URL: z.string().default('http://localhost:3000'),
+  PORT: Joi.number().default(3001),
   
-  // Database
-  DATABASE_URL: z.string(),
+  // Frontend URL para CORS
+  FRONTEND_URL: Joi.string()
+    .uri()
+    .default('http://localhost:3000'),
+  
+  // Banco de Dados
+  DATABASE_URL: Joi.string().required(),
+  
+  // Redis
+  REDIS_URL: Joi.string().required(),
+  REDIS_TTL: Joi.number().default(3600),
   
   // JWT
-  JWT_ACCESS_SECRET: z.string(),
-  JWT_REFRESH_SECRET: z.string(),
-  JWT_ACCESS_EXPIRES: z.string().default('15m'),
-  JWT_REFRESH_EXPIRES: z.string().default('7d'),
+  JWT_ACCESS_SECRET: Joi.string().required(),
+  JWT_REFRESH_SECRET: Joi.string().required(),
+  JWT_ACCESS_EXPIRATION: Joi.string().default('15m'),
+  JWT_REFRESH_EXPIRATION: Joi.string().default('7d'),
   
   // Google OAuth
-  GOOGLE_CLIENT_ID: z.string(),
-  GOOGLE_CLIENT_SECRET: z.string(),
-  GOOGLE_REDIRECT_URI: z.string(),
+  GOOGLE_CLIENT_ID: Joi.string().required(),
+  GOOGLE_CLIENT_SECRET: Joi.string().required(),
+  GOOGLE_REDIRECT_URI: Joi.string()
+    .uri()
+    .required(),
   
-  // API externas
-  OPEN_LIBRARY_API_URL: z.string().default('https://openlibrary.org/api'),
-  GOOGLE_BOOKS_API_URL: z.string().default('https://www.googleapis.com/books/v1'),
-  BOOK_PLACEHOLDER_COVER_URL: z.string().default('https://readsy.app/placeholder-cover.jpg'),
+  // APIs de Livros
+  OPEN_LIBRARY_API_URL: Joi.string()
+    .uri()
+    .default('https://openlibrary.org'),
+  GOOGLE_BOOKS_API_URL: Joi.string()
+    .uri()
+    .default('https://www.googleapis.com/books/v1'),
   
-  // Posts e Timeline
-  POST_MAX_PER_PAGE: z.coerce.number().default(50),
-  POST_RATE_LIMIT: z.coerce.number().default(3),
-  POST_RATE_LIMIT_WINDOW: z.coerce.number().default(30),
-  
-  // Gamificação
-  GAMIFICATION_MAX_LEVEL: z.coerce.number().default(10),
-  GAMIFICATION_MAX_XP: z.coerce.number().default(5500),
-  GAMIFICATION_BASE_XP_PER_CHECKIN: z.coerce.number().default(10),
-  GAMIFICATION_XP_PER_PAGE: z.coerce.number().default(1),
-  GAMIFICATION_XP_PER_MINUTE: z.coerce.number().default(2)
-});
-
-export type EnvConfig = z.infer<typeof envSchema>;
-
-export function validate(config: Record<string, unknown>) {
-  const result = envSchema.safeParse(config);
-  
-  if (!result.success) {
-    console.error('❌ Validação do .env falhou');
-    console.error(
-      result.error.errors.map(
-        (error) => `${error.path}: ${error.message}`
-      )
-    );
-    throw new Error('Validação do .env falhou');
-  }
-  
-  return result.data;
-} 
+  // Stripe (opcional, se implementado)
+  STRIPE_SECRET_KEY: Joi.string().optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().optional(),
+}); 

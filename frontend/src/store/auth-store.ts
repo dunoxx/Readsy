@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
-import { API_URL } from '@/lib/config';
+import config from '@/lib/config';
 
 interface User {
   id: string;
@@ -27,6 +27,8 @@ interface AuthState {
   refreshAccessToken: () => Promise<boolean>;
   clearError: () => void;
 }
+
+const API_URL = config.api.baseUrl;
 
 export const useAuthStore = create<AuthState>()(
   persist(

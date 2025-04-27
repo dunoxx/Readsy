@@ -3,7 +3,6 @@
 import { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/config';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -16,8 +15,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="text-center">
           {/* Espaço reservado para o logo */}
           <Link href="/" className="inline-block">
-            <h1 className="text-3xl font-bold tracking-tight text-primary">{SITE_NAME}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{SITE_DESCRIPTION}</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">Readsy</h1>
+            <p className="text-sm text-muted-foreground mt-1">Sua plataforma de leitura</p>
           </Link>
         </div>
         

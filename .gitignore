@@ -30,6 +30,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Permitir .env.sample ser versionado
+!/backend/.env.sample
+!/frontend/.env.sample
+
 # Vercel
 .vercel
 

@@ -9,14 +9,15 @@ export class ExternalBookService {
   private readonly openLibraryUrl: string;
   private readonly openLibrarySearchUrl: string;
   private readonly googleBooksUrl: string;
-  private readonly placeholderCover: string;
+  private readonly placeholderCover = 'https://readsy.app/placeholder-cover.jpg';
 
   constructor(private configService: ConfigService) {
-    const openLibraryBaseUrl = this.configService.get<string>('OPEN_LIBRARY_API_URL', 'https://openlibrary.org/api');
-    this.openLibraryUrl = `${openLibraryBaseUrl}/books`;
-    this.openLibrarySearchUrl = 'https://openlibrary.org/search.json';
-    this.googleBooksUrl = this.configService.get<string>('GOOGLE_BOOKS_API_URL', 'https://www.googleapis.com/books/v1/volumes');
-    this.placeholderCover = this.configService.get<string>('BOOK_PLACEHOLDER_COVER_URL', 'https://readsy.app/placeholder-cover.jpg');
+    // Obter URLs das APIs de fontes externas do arquivo .env
+    const openLibraryBaseUrl = this.configService.get<string>('OPEN_LIBRARY_API_URL', 'https://openlibrary.org');
+    this.openLibraryUrl = `${openLibraryBaseUrl}/api/books`;
+    this.openLibrarySearchUrl = `${openLibraryBaseUrl}/search.json`;
+    
+    this.googleBooksUrl = `${this.configService.get<string>('GOOGLE_BOOKS_API_URL', 'https://www.googleapis.com/books/v1')}/volumes`;
   }
 
   /**

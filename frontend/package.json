@@ -9,10 +9,7 @@
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "check:env": "node scripts/check-env.js",
-    "predev": "npm run check:env",
-    "prebuild": "npm run check:env"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

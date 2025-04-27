@@ -21,10 +21,7 @@
     "migration:run": "prisma migrate deploy",
     "migration:revert": "prisma migrate reset",
     "prisma:generate": "prisma generate",
-    "seed": "ts-node prisma/seed.ts",
-    "check:env": "node scripts/check-env.js",
-    "prestart": "npm run check:env",
-    "prestart:dev": "npm run check:env"
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.2.10",
@@ -43,6 +40,7 @@
     "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",
     "helmet": "^7.1.0",
+    "joi": "^17.13.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",

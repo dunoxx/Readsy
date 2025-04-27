@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 
@@ -18,19 +17,15 @@ export class GamificationService {
   private readonly challengeCoinsOptions = [0, 5, 10, 15, 25, 30];
   
   // Nível máximo permitido
-  private readonly MAX_LEVEL: number;
+  private readonly MAX_LEVEL = 10;
   
   // XP máximo permitido
-  private readonly MAX_XP: number;
+  private readonly MAX_XP = 5500;
 
   constructor(
     private prisma: PrismaService,
     private leaderboardService: LeaderboardService,
-    private configService: ConfigService,
-  ) {
-    this.MAX_LEVEL = this.configService.get<number>('GAMIFICATION_MAX_LEVEL') || 10;
-    this.MAX_XP = this.configService.get<number>('GAMIFICATION_MAX_XP') || 5500;
-  }
+  ) {}
 
   // Obter status de gamificação do usuário
   async getUserStatus(userId: string) {

@@ -27,26 +27,13 @@ cd readsy
 2. Configure os arquivos `.env` tanto no backend quanto no frontend
 ```bash
 # No backend
-cp backend/.env.example backend/.env
+cp backend/.env.sample backend/.env
 
 # No frontend
-cp frontend/.env.example frontend/.env.local
+cp frontend/.env.sample frontend/.env
 
 # Edite os arquivos .env conforme necessário
 ```
-
-> **IMPORTANTE**: A configuração correta das variáveis de ambiente é **essencial** para o funcionamento do Readsy. Todas as variáveis em `.env.example` precisam ser preenchidas antes de iniciar a aplicação.
-
-As variáveis críticas que devem ser configuradas são:
-
-**Backend:**
-- `DATABASE_URL`: URL de conexão com o PostgreSQL
-- `JWT_ACCESS_SECRET` e `JWT_REFRESH_SECRET`: Chaves secretas para JWT
-- `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`: Para autenticação OAuth
-
-**Frontend:**
-- `NEXT_PUBLIC_API_URL`: URL da API do backend
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`: Client ID do Google para login OAuth
 
 3. Execute o ambiente de desenvolvimento:
 
@@ -463,37 +450,3 @@ O frontend utiliza componentes da biblioteca shadcn/ui para uma interface consis
 - Indicadores de carregamento
 - Layout responsivo (mobile-first)
 - Temas claro/escuro 
-
-## Variáveis de Ambiente
-
-O Readsy utiliza variáveis de ambiente para toda configuração sensível ou customizável. Todos os valores são carregados a partir de arquivos `.env` (backend) e `.env.local` (frontend).
-
-### Variáveis do Backend
-
-| Variável | Descrição | Obrigatória |
-|----------|-----------|-------------|
-| `NODE_ENV` | Ambiente de execução (development, production) | Não (default: development) |
-| `PORT` | Porta do servidor backend | Não (default: 3001) |
-| `DATABASE_URL` | String de conexão com o PostgreSQL | Sim |
-| `FRONTEND_URL` | URL do frontend para CORS | Não (default: http://localhost:3000) |
-| `JWT_ACCESS_SECRET` | Segredo para assinar tokens de acesso | Sim |
-| `JWT_REFRESH_SECRET` | Segredo para assinar tokens de refresh | Sim |
-| `JWT_ACCESS_EXPIRES` | Tempo de expiração do token de acesso | Não (default: 15m) |
-| `JWT_REFRESH_EXPIRES` | Tempo de expiração do token de refresh | Não (default: 7d) |
-| `GOOGLE_CLIENT_ID` | Client ID para OAuth do Google | Sim (para login social) |
-| `GOOGLE_CLIENT_SECRET` | Client Secret para OAuth do Google | Sim (para login social) |
-| `GOOGLE_REDIRECT_URI` | URI de redirecionamento do OAuth | Sim (para login social) |
-| `GAMIFICATION_MAX_LEVEL` | Nível máximo do sistema de gamificação | Não (default: 10) |
-| `GAMIFICATION_MAX_XP` | XP máximo no sistema | Não (default: 5500) |
-
-### Variáveis do Frontend
-
-| Variável | Descrição | Obrigatória |
-|----------|-----------|-------------|
-| `NEXT_PUBLIC_API_URL` | URL da API do backend | Sim |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Client ID para OAuth do Google | Sim (para login social) |
-| `NEXT_PUBLIC_SITE_NAME` | Nome do site | Não (default: Readsy) |
-| `NEXT_PUBLIC_SITE_DESCRIPTION` | Descrição do site | Não (default: Sua plataforma de leitura) |
-| `NEXT_PUBLIC_UPLOAD_MAX_SIZE` | Tamanho máximo de uploads | Não (default: 5MB) |
-
-> Observação: Todos os valores padrão estão definidos em `.env.example` em cada diretório. 
