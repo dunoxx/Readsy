@@ -607,15 +607,24 @@ model AdminLog {
   @@map("admin_logs")
 }
 
+enum ConfigCategory {
+  APP_SETTINGS
+  GAMIFICATION
+  BOOK_API_SETTINGS
+  THIRD_PARTY
+  GENERAL
+}
+
 model AdminSetting {
-  id          String   @id @default(uuid())
-  key         String   @unique
+  id          String         @id @default(uuid())
+  key         String         @unique
   value       Json
   description String?
-  category    String   @default("general")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  category    ConfigCategory @default(GENERAL)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   
+  @@unique([key, category])
   @@index([category])
   @@map("admin_settings")
 }
