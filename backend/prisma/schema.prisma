@@ -72,19 +72,24 @@ enum BookStatus {
 }
 
 model Book {
-  id          String     @id @default(uuid())
-  title       String
-  author      String
-  coverImage  String?
-  isbn        String?
-  pages       Int?
-  status      BookStatus @default(READING)
-  createdAt   DateTime   @default(now())
-  createdBy   User       @relation(fields: [createdById], references: [id])
-  createdById String
-  checkins    Checkin[]
-  challenges  ChallengeBook[]
+  id            String     @id @default(uuid())
+  title         String
+  author        String
+  coverImage    String?
+  isbn          String?
+  pages         Int?
+  publishedDate String?    // Ano de publicação, ex: "1999"
+  description   String?    // Resumo do livro
+  publisher     String?    // Nome da editora
+  language      String?    // Código do idioma, ex: "pt", "en", "es"
+  status        BookStatus @default(READING)
+  createdAt     DateTime   @default(now())
+  createdBy     User       @relation(fields: [createdById], references: [id])
+  createdById   String
+  checkins      Checkin[]
+  challenges    ChallengeBook[]
 
+  @@index([isbn]) // Indexar ISBN para buscas mais rápidas
   @@map("books")
 }
 

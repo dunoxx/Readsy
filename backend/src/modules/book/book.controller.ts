@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Req, Query } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dtos/create-book.dto';
 import { UpdateBookDto } from './dtos/update-book.dto';
 import { UpdateBookStatusDto } from './dtos/update-book-status.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SearchBookDto } from './dtos/search-book.dto';
 
 @ApiTags('books')
 @Controller('books')
@@ -57,11 +58,23 @@ export class BookController {
     status: 404, 
     description: 'Livro não encontrado'
   })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.update(id, updateBookDto);
+  }
+
+  @ApiOperation({ summary: 'Remover livro' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Livro removido com sucesso'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Livro não encontrado'
+  })
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.bookService.remove(id);
   }
 
   @ApiOperation({ summary: 'Atualizar status do livro' })
@@ -84,20 +97,65 @@ export class BookController {
     return this.bookService.updateStatus(id, dto, req.user);
   }
 
-  @ApiOperation({ summary: 'Remover livro' })
+  @ApiOperation({ summary: 'Busca livro por título ou ISBN' })
   @ApiResponse({ 
-    status: 204, 
-    description: 'Livro removido com sucesso'
+    status: 200, 
+    description: 'Resultados da busca de livros', 
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
+          title: { type: 'string', example: 'Dom Casmurro' },
+          author: { type: 'string', example: 'Machado de Assis' },
+          coverImage: { type: 'string', example: 'https://covers.openlibrary.org/b/id/8739161-L.jpg' },
+          isbn: { type: 'string', example: '9788574801711' },
+          pages: { type: 'number', example: 256 },
+          publishedDate: { type: 'string', example: '1899' },
+          publisher: { type: 'string', example: 'Companhia das Letras' },
+          language: { type: 'string', example: 'pt' },
+          status: { type: 'string', example: 'READING' },
+          createdAt: { type: 'string', format: 'date-time' },
+          createdBy: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              username: { type: 'string' },
+              displayName: { type: 'string' },
+            }
+          }
+        }
+      }
+    }
   })
   @ApiResponse({ 
     status: 404, 
-    description: 'Livro não encontrado'
+    description: 'Nenhum livro encontrado'
+  })
+  @ApiQuery({
+    name: 'query',
+    required: true,
+    description: 'Termo de busca (título do livro ou ISBN)',
+    type: String,
+    example: 'Dom Casmurro'
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.bookService.remove(id);
+  @Get('search')
+  async searchBooks(@Query('query') query: string, @Req() req) {
+    const results = await this.bookService.searchBooks(query, req.user.id);
+    
+    if (results.length === 0) {
+      return { 
+        message: 'Nenhum livro encontrado para o termo de busca informado', 
+        results: [] 
+      };
+    }
+    
+    return { 
+      message: `${results.length} livro(s) encontrado(s)`, 
+      results 
+    };
   }
 } 

@@ -247,6 +247,23 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.5.1] - 2024-06-15
+
+### Adicionado
+- Endpoint `/api/books/search` para busca de livros locais e externos (OpenLibrary e Google Books).
+- Salvamento automático de livros no banco de dados do Readsy.
+- Estrutura preparada para futura atualização de livros incompletos.
+- Novos campos no modelo Book: publishedDate, description, publisher e language.
+- Indexação de ISBN para buscas mais rápidas.
+
+### Atualizado
+- Documentação Swagger para novo endpoint de busca de livros.
+- Serviço de livros com validação e prevenção de duplicatas.
+
+### Próximos Passos
+- Implementar atualização periódica de livros com dados incompletos.
+- Adicionar suporte a gêneros e editoras na busca.
+
 ## [0.6.5] - 2024-06-12
 
 ### Adicionado
