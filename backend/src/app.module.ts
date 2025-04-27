@@ -12,6 +12,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { PostModule } from './modules/post/post.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { validate } from './config/env.validation';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StatsModule } from './modules/stats/stats.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validate,
     }),
     
     // Módulo do Prisma (conexão com banco de dados)

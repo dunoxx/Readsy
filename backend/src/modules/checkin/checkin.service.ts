@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCheckinDto } from './dtos/create-checkin.dto';
 import { GamificationService } from '../gamification/gamification.service';
@@ -8,20 +9,25 @@ import { QuestsService } from '../gamification/quests.service';
 @Injectable()
 export class CheckinService {
   // Base de XP por check-in
-  private readonly BASE_XP_PER_CHECKIN = 10;
+  private readonly BASE_XP_PER_CHECKIN: number;
   
   // XP por página lida
-  private readonly XP_PER_PAGE = 1;
+  private readonly XP_PER_PAGE: number;
   
   // XP por minuto de leitura
-  private readonly XP_PER_MINUTE = 2;
+  private readonly XP_PER_MINUTE: number;
 
   constructor(
     private prisma: PrismaService,
     private gamificationService: GamificationService,
     private achievementsService: AchievementsService,
     private questsService: QuestsService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.BASE_XP_PER_CHECKIN = this.configService.get<number>('GAMIFICATION_BASE_XP_PER_CHECKIN') || 10;
+    this.XP_PER_PAGE = this.configService.get<number>('GAMIFICATION_XP_PER_PAGE') || 1;
+    this.XP_PER_MINUTE = this.configService.get<number>('GAMIFICATION_XP_PER_MINUTE') || 2;
+  }
 
   // Buscar todos os checkins
   async findAll() {
