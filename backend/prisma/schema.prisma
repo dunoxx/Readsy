@@ -589,6 +589,37 @@ enum JoinRequestStatus {
   REJECTED
 }
 
+// Modelos para o Módulo de Administração
+model AdminLog {
+  id          String   @id @default(uuid())
+  adminId     String
+  action      String
+  entityType  String
+  entityId    String?
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([adminId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+model AdminSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  category    String   @default("general")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@map("admin_settings")
+}
+
 // Nova enum para frequência de desafios
 enum ChallengeFrequency {
   DAILY

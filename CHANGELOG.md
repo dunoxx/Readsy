@@ -518,3 +518,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## Versões Anteriores
 <!-- aqui viriam os changelogs anteriores -->
+
+## [Unreleased]
+
+#### Adicionado
+- Implementado AdminModule para gerenciamento completo da plataforma
+  - Criados modelos AdminLog e AdminSetting para registro e configuração
+  - Implementado AdminGuard para proteção das rotas administrativas
+  - Desenvolvido AdminLogService para auditoria de ações administrativas
+  - Desenvolvido AdminSettingsService para gerenciamento de configurações
+  - Desenvolvido I18nService para suporte a múltiplos idiomas
+  - Desenvolvido DashboardService para analytics da plataforma
+  - Implementado gerenciamento de usuários (listar, buscar, atualizar, bloquear/desbloquear, promover/demover)
+  - Implementado gerenciamento de grupos (listar, atualizar, transferir propriedade, deletar)
+  - Implementado gerenciamento de quests globais (listar, criar, atualizar, ativar/desativar, remover)
+  - Implementado gerenciamento de idiomas (listar, criar, atualizar, remover, importar/exportar)
+  - Implementado gerenciamento de configurações do sistema (visualizar, atualizar, inicializar padrões)
+  - Implementado dashboard analítico (estatísticas gerais, gráficos de crescimento, atividade)
+  - Implementado visualização de logs de atividades administrativas
