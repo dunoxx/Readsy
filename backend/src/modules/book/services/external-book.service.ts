@@ -9,7 +9,8 @@ export class ExternalBookService {
   private readonly openLibraryUrl: string;
   private readonly openLibrarySearchUrl: string;
   private readonly googleBooksUrl: string;
-  private readonly placeholderCover = 'https://readsy.app/placeholder-cover.jpg';
+  private readonly openLibraryCoversUrl: string;
+  private readonly placeholderCover: string;
 
   constructor(private configService: ConfigService) {
     // Obter URLs das APIs de fontes externas do arquivo .env
@@ -18,6 +19,8 @@ export class ExternalBookService {
     this.openLibrarySearchUrl = `${openLibraryBaseUrl}/search.json`;
     
     this.googleBooksUrl = `${this.configService.get<string>('GOOGLE_BOOKS_API_URL', 'https://www.googleapis.com/books/v1')}/volumes`;
+    this.openLibraryCoversUrl = this.configService.get<string>('OPEN_LIBRARY_COVERS_URL', 'https://covers.openlibrary.org');
+    this.placeholderCover = this.configService.get<string>('PLACEHOLDER_COVER_URL', 'https://readsy.app/placeholder-cover.jpg');
   }
 
   /**
@@ -76,7 +79,7 @@ export class ExternalBookService {
         const author = book.author_name?.[0] || 'Autor Desconhecido';
         const coverImageId = book.cover_i;
         const coverImage = coverImageId 
-          ? `https://covers.openlibrary.org/b/id/${coverImageId}-L.jpg`
+          ? `${this.openLibraryCoversUrl}/b/id/${coverImageId}-L.jpg`
           : this.placeholderCover;
         const isbn = book.isbn?.[0] || undefined;
         const pages = book.number_of_pages_median || undefined;

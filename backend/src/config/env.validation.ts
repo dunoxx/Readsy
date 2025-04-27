@@ -40,6 +40,12 @@ export const envValidationSchema = Joi.object({
   GOOGLE_BOOKS_API_URL: Joi.string()
     .uri()
     .default('https://www.googleapis.com/books/v1'),
+  OPEN_LIBRARY_COVERS_URL: Joi.string()
+    .uri()
+    .default('https://covers.openlibrary.org'),
+  PLACEHOLDER_COVER_URL: Joi.string()
+    .uri()
+    .default('https://readsy.app/placeholder-cover.jpg'),
   
   // Stripe (opcional, se implementado)
   STRIPE_SECRET_KEY: Joi.string().optional(),

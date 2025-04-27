@@ -24,6 +24,8 @@ GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
 # APIs de Livros
 OPEN_LIBRARY_API_URL=https://openlibrary.org
 GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1
+OPEN_LIBRARY_COVERS_URL=https://covers.openlibrary.org
+PLACEHOLDER_COVER_URL=https://readsy.app/placeholder-cover.jpg
 
 # Stripe (opcional)
 STRIPE_SECRET_KEY=
