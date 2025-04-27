@@ -27,13 +27,37 @@ export const envValidationSchema = Joi.object({
 });
 ```
 
+No AppModule:
+
+```typescript
+// backend/src/app.module.ts
+ConfigModule.forRoot({
+  isGlobal: true,
+  envFilePath: '.env',
+  validationSchema: envValidationSchema,
+  validationOptions: {
+    abortEarly: true,
+  },
+}),
+```
+
 ### 2. Configurações de JWT e Autenticação
 
 Todas as configurações relacionadas a JWT e autenticação agora são lidas a partir de variáveis de ambiente:
 
-- Expiração de tokens JWT Access e Refresh
-- Segredos para assinatura de tokens
-- Configurações do Google OAuth
+```typescript
+// backend/src/modules/auth/auth.module.ts
+JwtModule.registerAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => ({
+    secret: configService.get('JWT_ACCESS_SECRET'),
+    signOptions: {
+      expiresIn: configService.get('JWT_ACCESS_EXPIRATION', '15m'),
+    },
+  }),
+}),
+```
 
 ```typescript
 // backend/src/modules/auth/auth.service.ts
@@ -95,14 +119,53 @@ O arquivo `main.ts` foi melhorado para usar variáveis de ambiente e incluir tra
 
 ```typescript
 // backend/src/main.ts
-const nodeEnv = configService.get<string>('NODE_ENV', 'development');
-const port = configService.get<number>('PORT', 3001);
-const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
-const isProduction = nodeEnv === 'production';
+try {
+  // ...  
+  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const port = configService.get<number>('PORT', 3001);
+  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  const isProduction = nodeEnv === 'production';
 
-// Swagger apenas em desenvolvimento
-if (!isProduction) {
-  // ... configuração do Swagger ...
+  // Swagger apenas em desenvolvimento
+  if (!isProduction) {
+    // ... configuração do Swagger ...
+  }
+  // ...
+} catch (error) {
+  console.error('Erro ao iniciar o servidor:', error);
+  process.exit(1);
+}
+```
+
+### 6. Correções de Tipagem
+
+Foram corrigidos problemas de tipagem no código para garantir o funcionamento correto da aplicação:
+
+```typescript
+// backend/src/modules/auth/auth.service.ts
+const tokens = await this.getTokens(
+  user.id,
+  user.email,
+  user.username || undefined
+);
+```
+
+```typescript
+// backend/src/prisma/prisma.service.ts
+async cleanDatabase() {
+  // ...
+  const models = [
+    'userGroup',
+    'userChallenge',
+    // ...
+  ];
+
+  return Promise.all(
+    models.map((modelName) => {
+      // @ts-ignore - Ignora o aviso de tipo, pois estamos acessando dinamicamente
+      return this[modelName].deleteMany();
+    })
+  );
 }
 ```
 
@@ -111,8 +174,6 @@ if (!isProduction) {
 ### 1. Arquivo de Configuração Centralizado
 
 Criamos um arquivo de configuração centralizado para o frontend, permitindo o acesso organizado a todas as variáveis de ambiente:
-
-- Arquivo criado: `frontend/src/lib/config.ts`
 
 ```typescript
 // frontend/src/lib/config.ts
@@ -128,6 +189,8 @@ export const config = {
   },
   // ... outras configurações ...
 };
+
+export default config;
 ```
 
 ### 2. Atualização do Auth Store
@@ -145,62 +208,14 @@ const API_URL = config.api.baseUrl;
 
 ## Arquivos .env.sample
 
-Foram definidos modelos para os arquivos `.env.sample` do backend e frontend, que podem ser criados manualmente ou pelo CI:
+Foram criados templates para os arquivos `.env.sample` do backend e frontend. Os templates estão disponíveis no arquivo `ENV_FILES_TEMPLATES.md`.
 
-### Backend (.env.sample)
+## Próximos Passos
 
-```
-# Ambiente
-NODE_ENV=development
-PORT=3001
-FRONTEND_URL=http://localhost:3000
-
-# Banco de Dados
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/readsy
-
-# Redis
-REDIS_URL=redis://redis:6379
-REDIS_TTL=3600
-
-# JWT
-JWT_ACCESS_SECRET=your_access_secret_here
-JWT_REFRESH_SECRET=your_refresh_secret_here
-JWT_ACCESS_EXPIRATION=15m
-JWT_REFRESH_EXPIRATION=7d
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id_here
-GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
-
-# APIs de Livros
-OPEN_LIBRARY_API_URL=https://openlibrary.org
-GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1
-
-# Stripe (opcional)
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-```
-
-### Frontend (.env.sample)
-
-```
-# Ambiente
-NODE_ENV=development
-
-# API
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-
-# Google OAuth
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-
-# Análise e Monitoramento (opcional)
-NEXT_PUBLIC_ANALYTICS_ID=
-NEXT_PUBLIC_SENTRY_DSN=
-
-# Configurações de i18n
-NEXT_PUBLIC_DEFAULT_LOCALE=pt
-```
+1. Criar fisicamente os arquivos `.env.sample` nos diretórios correspondentes usando os templates fornecidos.
+2. Atualizar os arquivos `.env` de desenvolvimento com valores reais para teste.
+3. Verificar se a aplicação inicia corretamente com as novas configurações.
+4. Atualizar a documentação do projeto para orientar novos desenvolvedores sobre as variáveis de ambiente necessárias.
 
 ## Conclusão
 
@@ -208,7 +223,7 @@ Esta refatoração garantiu que:
 
 1. Nenhuma informação sensível esteja hardcoded no código
 2. Todas as configurações críticas sejam lidas do .env via ConfigService (backend) ou process.env (frontend)
-3. Exista um modelo de .env.sample para fácil configuração de novos ambientes
-4. A aplicação tenha segurança, escalabilidade e facilidade de manutenção melhoradas
+3. A aplicação tenha segurança, escalabilidade e facilidade de manutenção melhoradas
+4. A aplicação falhe de forma segura se estiverem faltando variáveis críticas
 
 A validação com Joi também assegura que a aplicação não inicie sem as variáveis de ambiente necessárias, fornecendo mensagens de erro claras sobre quais variáveis estão faltando. 

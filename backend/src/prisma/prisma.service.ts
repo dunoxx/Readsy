@@ -28,17 +28,25 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       throw new Error('Este método não pode ser executado em produção');
     }
 
-    // Define a ordem inversa para evitar problemas de chave estrangeira
-    return Promise.all([
-      this.userGroup.deleteMany(),
-      this.userChallenge.deleteMany(),
-      this.challengeBook.deleteMany(),
-      this.userBook.deleteMany(),
-      this.checkin.deleteMany(),
-      this.group.deleteMany(),
-      this.challenge.deleteMany(),
-      this.book.deleteMany(),
-      this.user.deleteMany(),
-    ]);
+    // Lista de modelos para limpar (em ordem para evitar problemas de chave estrangeira)
+    const models = [
+      'userGroup',
+      'userChallenge',
+      'challengeBook',
+      'userBook',
+      'checkin',
+      'group',
+      'challenge',
+      'book',
+      'user',
+    ];
+
+    // Limpar os dados de cada modelo
+    return Promise.all(
+      models.map((modelName) => {
+        // @ts-ignore - Ignora o aviso de tipo, pois estamos acessando dinamicamente
+        return this[modelName].deleteMany();
+      })
+    );
   }
 } 

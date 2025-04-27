@@ -68,7 +68,7 @@ export class AuthService {
       const tokens = await this.getTokens(
         newUser.id, 
         newUser.email, 
-        newUser.username
+        newUser.username || undefined
       );
       
       // Atualizar refreshToken
@@ -113,7 +113,7 @@ export class AuthService {
     const tokens = await this.getTokens(
       user.id, 
       user.email, 
-      user.username
+      user.username || undefined
     );
     
     // Atualizar refreshToken
@@ -148,7 +148,7 @@ export class AuthService {
     const tokens = await this.getTokens(
       user.id,
       user.email,
-      user.username,
+      user.username || undefined
     );
     
     // Atualizar refreshToken
@@ -206,7 +206,7 @@ export class AuthService {
     const tokens = await this.getTokens(
       user.id,
       user.email,
-      user.username,
+      user.username || undefined
     );
     
     // Atualizar refreshToken
