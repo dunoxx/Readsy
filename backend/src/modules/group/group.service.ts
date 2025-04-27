@@ -530,6 +530,7 @@ export class GroupService {
           connect: { id: targetUserId },
         },
         role: 'MEMBER',
+        lastActivityAt: new Date(),
       },
       include: {
         user: {
@@ -612,7 +613,7 @@ export class GroupService {
       throw new BadRequestException('Usuário já é membro deste grupo');
     }
 
-    // Adicionar o usuário como membro
+    // Adicionar o usuário como membro (lastActivityAt será definido automaticamente com o valor padrão now())
     return this.prisma.groupMember.create({
       data: {
         group: {
@@ -622,6 +623,7 @@ export class GroupService {
           connect: { id: userId },
         },
         role: 'MEMBER',
+        lastActivityAt: new Date(),
       },
       include: {
         group: true,
@@ -805,7 +807,7 @@ export class GroupService {
       },
     });
 
-    // Atualizar estatísticas do membro no grupo
+    // Atualizar estatísticas do membro no grupo, incluindo última atividade
     await this.prisma.groupMember.update({
       where: {
         groupId_userId: {
@@ -823,6 +825,169 @@ export class GroupService {
     return {
       message: 'Desafio completado com sucesso',
       pointsEarned: challenge.pointsReward,
+    };
+  }
+
+  // Método para atualizar a última atividade de um membro no grupo (pode ser chamado por outros métodos)
+  async updateMemberLastActivity(groupId: string, userId: string) {
+    return this.prisma.groupMember.update({
+      where: {
+        groupId_userId: {
+          groupId,
+          userId,
+        },
+      },
+      data: {
+        lastActivityAt: new Date(),
+      },
+    });
+  }
+
+  // Promover membro a admin (esqueleto para implementação futura)
+  async promoteMember(groupId: string, memberId: string, currentUserId: string) {
+    // Verificar se o grupo existe
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    // Verificar se o usuário atual é o proprietário
+    if (group.ownerId !== currentUserId) {
+      throw new ForbiddenException('Apenas o proprietário do grupo pode promover membros');
+    }
+
+    // Aqui virá a lógica de promover o membro
+
+    // Atualizar lastActivityAt do membro promovido
+    await this.updateMemberLastActivity(groupId, memberId);
+
+    // Retornar resultado
+    return {
+      message: 'Membro promovido a administrador com sucesso',
+    };
+  }
+
+  // Rebaixar admin para membro (esqueleto para implementação futura)
+  async demoteMember(groupId: string, adminId: string, currentUserId: string) {
+    // Verificar se o grupo existe
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    // Verificar se o usuário atual é o proprietário
+    if (group.ownerId !== currentUserId) {
+      throw new ForbiddenException('Apenas o proprietário do grupo pode rebaixar administradores');
+    }
+
+    // Aqui virá a lógica de rebaixar o admin
+
+    // Atualizar lastActivityAt do admin rebaixado
+    await this.updateMemberLastActivity(groupId, adminId);
+
+    // Retornar resultado
+    return {
+      message: 'Administrador rebaixado para membro comum com sucesso',
+    };
+  }
+
+  // Aprovar solicitação de membro (esqueleto para implementação futura)
+  async approveMember(groupId: string, requestId: string, currentUserId: string) {
+    // Verificar se o grupo existe
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    // Verificar se o usuário atual é admin ou proprietário
+    if (!(await this.isAdminOrOwner(groupId, currentUserId))) {
+      throw new ForbiddenException('Apenas administradores ou o proprietário podem aprovar solicitações');
+    }
+
+    // Aqui virá a lógica de aprovação da solicitação
+    // Incluindo a obtenção do userId da solicitação
+
+    const userId = 'id-do-usuario-da-solicitacao'; // Isso será substituído na implementação real
+
+    // Ao adicionar o membro, já definir lastActivityAt como data atual
+    await this.prisma.groupMember.create({
+      data: {
+        group: {
+          connect: { id: groupId },
+        },
+        user: {
+          connect: { id: userId },
+        },
+        role: 'MEMBER',
+        lastActivityAt: new Date(),
+      },
+    });
+
+    // Retornar resultado
+    return {
+      message: 'Solicitação aprovada e usuário adicionado ao grupo com sucesso',
+    };
+  }
+
+  // Remover membro do grupo (esqueleto para implementação futura)
+  async removeMember(groupId: string, memberId: string, currentUserId: string) {
+    // Verificar se o grupo existe
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    // Verificar se o usuário atual é admin ou proprietário
+    if (!(await this.isAdminOrOwner(groupId, currentUserId))) {
+      throw new ForbiddenException('Apenas administradores ou o proprietário podem remover membros');
+    }
+
+    // Verificar se o membro a ser removido não é o proprietário
+    if (group.ownerId === memberId) {
+      throw new BadRequestException('O proprietário do grupo não pode ser removido');
+    }
+
+    // Aqui virá a lógica de remoção do membro
+
+    // Retornar resultado
+    return {
+      message: 'Membro removido do grupo com sucesso',
+    };
+  }
+
+  // Rejeitar solicitação de membro (esqueleto para implementação futura)
+  async rejectMember(groupId: string, requestId: string, currentUserId: string) {
+    // Verificar se o grupo existe
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    // Verificar se o usuário atual é admin ou proprietário
+    if (!(await this.isAdminOrOwner(groupId, currentUserId))) {
+      throw new ForbiddenException('Apenas administradores ou o proprietário podem rejeitar solicitações');
+    }
+
+    // Aqui virá a lógica de rejeição da solicitação
+
+    // Retornar resultado
+    return {
+      message: 'Solicitação rejeitada com sucesso',
     };
   }
 } 

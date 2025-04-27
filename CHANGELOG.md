@@ -496,15 +496,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Funcionalidade de transferência de propriedade do grupo
 - Sistema de desafios internos do grupo
 - Sistema de pontos e ranking interno
-- Rastreamento de atividades dos membros
+- Rastreamento de atividades dos membros através do campo lastActivityAt
 - APIs para gerenciamento completo de grupos
+- Documentação Swagger detalhada para todas as rotas do módulo de grupos
 
 ### Alterado
 - Esquema do Prisma para suportar a estrutura de dados do grupo
 - Expandida a funcionalidade de desafios para incluir desafios específicos de grupo
+- Melhoria no rastreamento de atividades de usuários em grupos
+- Atualização do campo lastActivityAt ao completar desafios do grupo
 
 ### Corrigido
 - Otimizado o cálculo de ranking para melhor performance em grupos grandes
+- Garantido a atualização adequada da última atividade do membro no grupo
+- Implementado método auxiliar updateMemberLastActivity para centralizar a lógica
+
+### Segurança
+- Todas as rotas protegidas com autenticação JWT
+- Validação de permissões para operações de administrador e proprietário
+- Verificações rigorosas de associação de membros antes de operações em grupos
 
 ## Versões Anteriores
 <!-- aqui viriam os changelogs anteriores -->
