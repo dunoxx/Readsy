@@ -11,6 +11,7 @@ import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { PostModule } from './modules/post/post.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PostModule } from './modules/post/post.module';
     AdminModule,
     GamificationModule,
     PostModule,
+    StatsModule,
   ],
   controllers: [],
   providers: [],

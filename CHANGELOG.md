@@ -247,6 +247,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### Correções
 - N/A (versão inicial)
 
+## [0.6.5] - 2024-06-12
+
+### Adicionado
+- Endpoint `/api/stats/me` para estatísticas do usuário autenticado.
+- Endpoint `/api/admin/stats/global` para estatísticas globais da plataforma.
+- Serviço de estatísticas usando Prisma ORM otimizado.
+- Estatísticas completas de leitura, incluindo páginas lidas e tempo de leitura.
+- Estatísticas de livros por status (lendo, finalizado, abandonado, planejado).
+- Lista dos usuários mais ativos da plataforma.
+
+### Atualizado
+- Documentação Swagger para novos endpoints de estatísticas.
+- Proteção dos endpoints com autenticação JWT e verificação de papel (ADMIN).
+
+### Próximos Passos
+- Exibir estatísticas nos dashboards do usuário e do admin.
+- Criar relatórios personalizados para temporada.
+- Adicionar gráficos e visualizações das estatísticas.
+
 ## [0.6.3.1] - 2024-06-10
 
 ### Adicionado
