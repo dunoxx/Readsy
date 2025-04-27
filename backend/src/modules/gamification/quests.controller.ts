@@ -4,6 +4,7 @@ import { CreateDailyQuestDto } from './dto/create-daily-quest.dto';
 import { CreateWeeklyQuestDto } from './dto/create-weekly-quest.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: {

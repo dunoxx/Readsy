@@ -68,21 +68,18 @@ export class QuestsService {
         }
         break;
       
-      case QuestType.FINISH_BOOK:
-      case QuestType.POST_TIMELINE:
-      case QuestType.REACT_TO_POST:
+      case QuestType.COMPLETE_BOOK:
+      case QuestType.REVIEW_BOOK:
       case QuestType.INVITE_FRIEND:
-      case QuestType.COMPLETE_DAILY_QUESTS:
         if (!parameters?.count || !Number.isInteger(parameters.count) || parameters.count <= 0) {
           throw new BadRequestException('O parâmetro "count" é obrigatório para este tipo de quest e deve ser um número inteiro positivo');
         }
         break;
       
       // Tipos que não precisam de parâmetros adicionais
-      case QuestType.CHECKIN_DAY:
-      case QuestType.JOIN_GROUP_CHALLENGE:
-      case QuestType.UPDATE_BOOK_STATUS:
-      case QuestType.CREATE_GROUP:
+      case QuestType.DAILY_CHECKIN:
+      case QuestType.JOIN_GROUP:
+      case QuestType.UPDATE_PROFILE:
         break;
       
       default:

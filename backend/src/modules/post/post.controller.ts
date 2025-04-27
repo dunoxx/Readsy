@@ -20,6 +20,7 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { CreateReactionDto } from './dtos/create-reaction.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: {

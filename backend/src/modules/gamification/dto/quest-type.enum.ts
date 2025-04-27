@@ -1,12 +1,5 @@
-export enum QuestType {
-  CHECKIN_DAY = 'CHECKIN_DAY',
-  READ_PAGES = 'READ_PAGES',
-  FINISH_BOOK = 'FINISH_BOOK',
-  POST_TIMELINE = 'POST_TIMELINE',
-  JOIN_GROUP_CHALLENGE = 'JOIN_GROUP_CHALLENGE',
-  REACT_TO_POST = 'REACT_TO_POST',
-  UPDATE_BOOK_STATUS = 'UPDATE_BOOK_STATUS',
-  INVITE_FRIEND = 'INVITE_FRIEND',
-  CREATE_GROUP = 'CREATE_GROUP',
-  COMPLETE_DAILY_QUESTS = 'COMPLETE_DAILY_QUESTS',
-} 
+// Importar diretamente do Prisma
+import { QuestType } from '@prisma/client';
+
+// Re-exportar para compatibilidade
+export { QuestType }; 

@@ -12,35 +12,26 @@ export class QuestValidatorService {
    */
   async validateQuestCompletion(userId: string, questType: QuestType, parameters: Record<string, any> = {}): Promise<boolean> {
     switch (questType) {
-      case QuestType.CHECKIN_DAY:
-        return this.validateCheckinDay(userId);
+      case QuestType.DAILY_CHECKIN:
+        return this.validateDailyCheckin(userId);
       
       case QuestType.READ_PAGES:
         return this.validateReadPages(userId, parameters.pages || 0);
       
-      case QuestType.FINISH_BOOK:
-        return this.validateFinishBook(userId, parameters.count || 1);
+      case QuestType.COMPLETE_BOOK:
+        return this.validateCompleteBook(userId, parameters.count || 1);
       
-      case QuestType.POST_TIMELINE:
-        return this.validatePostTimeline(userId, parameters.count || 1);
-      
-      case QuestType.JOIN_GROUP_CHALLENGE:
-        return this.validateJoinGroupChallenge(userId);
-      
-      case QuestType.REACT_TO_POST:
-        return this.validateReactToPost(userId, parameters.count || 1);
-      
-      case QuestType.UPDATE_BOOK_STATUS:
-        return this.validateUpdateBookStatus(userId);
+      case QuestType.JOIN_GROUP:
+        return this.validateJoinGroup(userId);
       
       case QuestType.INVITE_FRIEND:
         return this.validateInviteFriend(userId, parameters.count || 1);
       
-      case QuestType.CREATE_GROUP:
-        return this.validateCreateGroup(userId);
+      case QuestType.REVIEW_BOOK:
+        return this.validateReviewBook(userId, parameters.count || 1);
       
-      case QuestType.COMPLETE_DAILY_QUESTS:
-        return this.validateCompleteDailyQuests(userId, parameters.count || 3);
+      case QuestType.UPDATE_PROFILE:
+        return this.validateUpdateProfile(userId);
       
       default:
         return false;
@@ -50,7 +41,7 @@ export class QuestValidatorService {
   /**
    * Valida se o usuário fez check-in hoje
    */
-  private async validateCheckinDay(userId: string): Promise<boolean> {
+  private async validateDailyCheckin(userId: string): Promise<boolean> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -99,16 +90,17 @@ export class QuestValidatorService {
   /**
    * Valida se o usuário finalizou ao menos um livro
    */
-  private async validateFinishBook(userId: string, count: number): Promise<boolean> {
+  private async validateCompleteBook(userId: string, count: number): Promise<boolean> {
     // Verificar se o usuário finalizou livros definindo o status como FINISHED
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     
     const finishedBooks = await this.prisma.book.count({
       where: {
-        userId,
+        createdById: userId,
         status: BookStatus.FINISHED,
-        updatedAt: {
+        // Usar apenas a data para verificar
+        createdAt: {
           gte: weekAgo,
         },
       },
@@ -118,64 +110,22 @@ export class QuestValidatorService {
   }
 
   /**
-   * Valida se o usuário postou na timeline
+   * Valida se o usuário entrou em um grupo
    */
-  private async validatePostTimeline(userId: string, count: number): Promise<boolean> {
-    // Esta funcionalidade pode ainda não existir
-    // Implementação futura quando o sistema de timeline for criado
-    return true; // Mock para desenvolvimento
-  }
-
-  /**
-   * Valida se o usuário entrou em um desafio de grupo
-   */
-  private async validateJoinGroupChallenge(userId: string): Promise<boolean> {
+  private async validateJoinGroup(userId: string): Promise<boolean> {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     
-    const joinedChallenges = await this.prisma.userGroupChallenge.count({
+    const joinedGroups = await this.prisma.groupMember.count({
       where: {
         userId,
-        createdAt: {
+        joinedAt: {
           gte: weekAgo,
         },
       },
     });
     
-    return joinedChallenges > 0;
-  }
-
-  /**
-   * Valida se o usuário reagiu a posts
-   */
-  private async validateReactToPost(userId: string, count: number): Promise<boolean> {
-    // Esta funcionalidade pode ainda não existir
-    // Implementação futura quando o sistema de reações for criado
-    return true; // Mock para desenvolvimento
-  }
-
-  /**
-   * Valida se o usuário atualizou o status de um livro
-   */
-  private async validateUpdateBookStatus(userId: string): Promise<boolean> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Verificar se houve alteração do campo status de qualquer livro do usuário
-    const updatedBooks = await this.prisma.book.count({
-      where: {
-        userId,
-        updatedAt: {
-          gte: today,
-          lt: tomorrow,
-        },
-      },
-    });
-    
-    return updatedBooks > 0;
+    return joinedGroups > 0;
   }
 
   /**
@@ -188,45 +138,29 @@ export class QuestValidatorService {
   }
 
   /**
-   * Valida se o usuário criou um grupo
+   * Valida se o usuário escreveu uma resenha
    */
-  private async validateCreateGroup(userId: string): Promise<boolean> {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    
-    const createdGroups = await this.prisma.group.count({
-      where: {
-        ownerId: userId,
-        createdAt: {
-          gte: weekAgo,
-        },
-      },
-    });
-    
-    return createdGroups > 0;
+  private async validateReviewBook(userId: string, count: number): Promise<boolean> {
+    // Esta funcionalidade pode ainda não existir
+    // Implementação futura quando o sistema de resenhas for criado
+    return true; // Mock para desenvolvimento
   }
 
   /**
-   * Valida se o usuário completou um número de quests diárias
+   * Valida se o usuário atualizou seu perfil
    */
-  private async validateCompleteDailyQuests(userId: string, count: number): Promise<boolean> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  private async validateUpdateProfile(userId: string): Promise<boolean> {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
     
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const completedQuests = await this.prisma.userDailyQuest.count({
-      where: {
-        userId,
-        completed: true,
-        completedAt: {
-          gte: today,
-          lt: tomorrow,
-        },
-      },
+    // Verificar se houve atualização do usuário
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { updatedAt: true },
     });
     
-    return completedQuests >= count;
+    if (!user) return false;
+    
+    return user.updatedAt > weekAgo;
   }
 } 

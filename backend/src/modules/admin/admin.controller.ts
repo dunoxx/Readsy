@@ -8,6 +8,7 @@ import { DashboardService } from './dashboard.service';
 import { AdminGuard } from './guards/admin.guard';
 import { UpdateUserDto } from '../user/dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: {

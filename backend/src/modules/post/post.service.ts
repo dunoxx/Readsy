@@ -227,19 +227,37 @@ export class PostService {
 
   // Criar novo post
   async create(createPostDto: CreatePostDto, userId: string) {
-    // Verificar limite de posts (anti-flood)
-    const canPost = await this.checkPostRateLimit(userId);
-    if (!canPost) {
+    // Verificar se o usuário existe
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+    }
+
+    // Verificar o limite de postagens (máximo 3 a cada 30 minutos)
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const recentPosts = await this.prisma.post.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: thirtyMinutesAgo,
+        },
+      },
+    });
+
+    if (recentPosts >= 3) {
       throw new HttpException(
-        'Você atingiu o limite de 3 posts a cada 30 minutos.',
-        HttpStatus.TOO_MANY_REQUESTS
+        'Limite de postagens excedido. Tente novamente mais tarde.',
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
+    // Criar a postagem
     return this.prisma.post.create({
       data: {
         content: createPostDto.content,
-        isSpoiler: createPostDto.isSpoiler || false,
         user: {
           connect: { id: userId },
         },
@@ -253,7 +271,17 @@ export class PostService {
             profilePicture: true,
           },
         },
-        reactions: true,
+        reactions: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+              },
+            },
+          },
+        },
       },
     });
   }

@@ -6,7 +6,8 @@ import {
   Req, 
   UseGuards, 
   HttpCode, 
-  HttpStatus 
+  HttpStatus, 
+  UnauthorizedException 
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
@@ -23,6 +24,14 @@ import {
   ApiBearerAuth, 
   ApiBody 
 } from '@nestjs/swagger';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: string;
+    [key: string]: any;
+  };
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,7 +63,7 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
-  refresh(@Req() req, @Body() refreshTokenDto: RefreshTokenDto): Promise<Tokens> {
+  refresh(@Req() req: RequestWithUser, @Body() refreshTokenDto: RefreshTokenDto): Promise<Tokens> {
     return this.authService.refreshTokens(
       req.user.id,
       refreshTokenDto.refreshToken,
@@ -68,24 +77,36 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  logout(@Req() req): Promise<boolean> {
+  logout(@Req() req: RequestWithUser): Promise<boolean> {
     return this.authService.logout(req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Validar token JWT' })
+  @ApiResponse({ status: 200, description: 'Token válido' })
+  @ApiResponse({ status: 401, description: 'Token inválido ou expirado' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('validate')
+  validateToken(@Req() req: RequestWithUser) {
+    if (!req.user) {
+      throw new UnauthorizedException('Token inválido');
+    }
+    return { valid: true, user: req.user };
   }
 
   @ApiOperation({ summary: 'Redirecionar para login Google' })
   @ApiResponse({ status: 302, description: 'Redirecionado para Google' })
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  googleAuth() {
-    // Este endpoint somente redireciona para o Google OAuth
-    return;
+  googleAuth(@Req() req: Request) {
+    // O redirecionamento é manipulado pelo próprio guard, não é necessário implementação
   }
 
   @ApiOperation({ summary: 'Callback de autenticação Google' })
   @ApiResponse({ status: 200, description: 'Autenticação Google com sucesso' })
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthCallback(@Req() req) {
+  googleAuthCallback(@Req() req: RequestWithUser) {
     return this.authService.googleLogin(req);
   }
 } 

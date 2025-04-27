@@ -496,38 +496,29 @@ model UserWeeklyQuest {
 
 // Novos modelos para o sistema de Timeline e Postagens
 model Post {
-  id             String     @id @default(uuid())
-  content        String
-  isSpoiler      Boolean    @default(false)
-  user           User       @relation(fields: [userId], references: [id])
-  userId         String
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  reactions      Reaction[]
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reactions   Reaction[]
 
   @@map("posts")
 }
 
 model Reaction {
-  id             String       @id @default(uuid())
-  type           ReactionType
-  user           User         @relation(fields: [userId], references: [id])
-  userId         String
-  post           Post         @relation(fields: [postId], references: [id])
-  postId         String
-  createdAt      DateTime     @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  type      String // like, love, etc
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, postId])
   @@map("reactions")
-}
-
-enum ReactionType {
-  LIKE
-  LOVE
-  LAUGH
-  WOW
-  SAD
-  ANGRY
 }
 
 // Modelos para o sistema unificado de quests

@@ -4,6 +4,7 @@ import { QuestService } from './quest.service';
 import { CreateQuestDto } from './dtos/create-quest.dto';
 import { AdminGuard } from '../admin/guards/admin.guard';
 import { AdminLogService } from '../admin/admin-log.service';
+import { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: {

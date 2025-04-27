@@ -6,6 +6,13 @@ import { UpdateBookStatusDto } from './dtos/update-book-status.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SearchBookDto } from './dtos/search-book.dto';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: string;
+  };
+}
 
 @ApiTags('books')
 @Controller('books')
@@ -18,8 +25,9 @@ export class BookController {
     description: 'Lista de livros retornada com sucesso'
   })
   @Get()
-  findAll() {
-    return this.bookService.findAll();
+  findAll(@Query() query: any, @Req() req: RequestWithUser) {
+    // Por padrão, retornar apenas os livros do usuário autenticado
+    return this.bookService.findAll(req.user.id, query);
   }
 
   @ApiOperation({ summary: 'Buscar livro por ID' })
@@ -44,7 +52,7 @@ export class BookController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createBookDto: CreateBookDto, @Req() req) {
+  create(@Body() createBookDto: CreateBookDto, @Req() req: RequestWithUser) {
     // Usar o ID do usuário autenticado
     return this.bookService.create(createBookDto, req.user.id);
   }
@@ -93,8 +101,12 @@ export class BookController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateBookStatusDto, @Req() req) {
-    return this.bookService.updateStatus(id, dto, req.user);
+  updateStatus(
+    @Param('id') id: string, 
+    @Body() updateStatusDto: UpdateBookStatusDto,
+    @Req() req: RequestWithUser
+  ) {
+    return this.bookService.updateStatus(id, updateStatusDto, req.user.id);
   }
 
   @ApiOperation({ summary: 'Busca livro por título ou ISBN' })
@@ -143,7 +155,7 @@ export class BookController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('search')
-  async searchBooks(@Query('query') query: string, @Req() req) {
+  async searchBooks(@Query('query') query: string, @Req() req: RequestWithUser) {
     const results = await this.bookService.searchBooks(query, req.user.id);
     
     if (results.length === 0) {

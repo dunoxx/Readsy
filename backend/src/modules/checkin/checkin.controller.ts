@@ -1,8 +1,16 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Req, Query } from '@nestjs/common';
 import { CheckinService } from './checkin.service';
 import { CreateCheckinDto } from './dtos/create-checkin.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: string;
+    [key: string]: any;
+  };
+}
 
 @ApiTags('checkins')
 @Controller('checkins')
@@ -49,14 +57,10 @@ export class CheckinController {
     return this.checkinService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Criar novo checkin' })
+  @ApiOperation({ summary: 'Criar novo check-in de leitura' })
   @ApiResponse({ 
     status: 201, 
-    description: 'Checkin criado com sucesso'
-  })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Livro ou usuário não encontrado'
+    description: 'Check-in criado com sucesso'
   })
   @ApiResponse({ 
     status: 400, 
@@ -64,17 +68,12 @@ export class CheckinController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('user/:userId')
+  @Post()
   create(
-    @Param('userId') userId: string,
     @Body() createCheckinDto: CreateCheckinDto,
-    @Req() req
+    @Req() req: RequestWithUser
   ) {
-    // Garantir que o usuário só crie checkins para si mesmo
-    if (userId !== req.user.id) {
-      userId = req.user.id;
-    }
-    return this.checkinService.create(userId, createCheckinDto);
+    return this.checkinService.create(req.user.id, createCheckinDto);
   }
 
   @ApiOperation({ summary: 'Remover checkin' })
