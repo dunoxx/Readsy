@@ -53,6 +53,7 @@ model User {
   weeklyQuests        UserWeeklyQuest[]
   posts               Post[]           // Relação com posts
   reactions           Reaction[]       // Relação com reações
+  userQuests          UserQuest[]      // Relação com o novo sistema de quests
 
   @@map("users")
 }
@@ -396,16 +397,13 @@ model SeasonReward {
 }
 
 enum QuestType {
-  CHECKIN_DAY
   READ_PAGES
-  FINISH_BOOK
-  POST_TIMELINE
-  JOIN_GROUP_CHALLENGE
-  REACT_TO_POST
-  UPDATE_BOOK_STATUS
+  COMPLETE_BOOK
+  DAILY_CHECKIN
+  JOIN_GROUP
   INVITE_FRIEND
-  CREATE_GROUP
-  COMPLETE_DAILY_QUESTS
+  REVIEW_BOOK
+  UPDATE_PROFILE
 }
 
 model DailyQuest {
@@ -510,4 +508,42 @@ enum ReactionType {
   WOW
   SAD
   ANGRY
+}
+
+// Modelos para o sistema unificado de quests
+model Quest {
+  id            String      @id @default(uuid())
+  title         String
+  description   String
+  type          QuestType
+  valueTarget   Int
+  xpReward      Int
+  coinReward    Int
+  emoji         String?
+  isActive      Boolean     @default(true)
+  isDaily       Boolean     @default(false)
+  isWeekly      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  userQuests    UserQuest[]
+}
+
+model UserQuest {
+  id          String    @id @default(uuid())
+  userId      String
+  questId     String
+  currentValue Int       @default(0)
+  completed   Boolean   @default(false)
+  acceptedAt  DateTime  @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime?
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest       Quest     @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId])
+  @@index([userId])
+  @@index([questId])
+  @@index([completed])
+  @@index([expiresAt])
 } 
