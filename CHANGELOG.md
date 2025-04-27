@@ -5,6 +5,223 @@ Todas as alterações notáveis no projeto Readsy serão documentadas neste arqu
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/spec/v2.0.0.html).
 
+## [0.6.5.1] - 2024-06-15
+
+### Adicionado
+- Endpoint `/api/books/search` para busca de livros locais e externos (OpenLibrary e Google Books).
+- Salvamento automático de livros no banco de dados do Readsy.
+- Estrutura preparada para futura atualização de livros incompletos.
+- Novos campos no modelo Book: publishedDate, description, publisher e language.
+- Indexação de ISBN para buscas mais rápidas.
+
+### Atualizado
+- Documentação Swagger para novo endpoint de busca de livros.
+- Serviço de livros com validação e prevenção de duplicatas.
+
+### Próximos Passos
+- Implementar atualização periódica de livros com dados incompletos.
+- Adicionar suporte a gêneros e editoras na busca.
+
+## [0.6.5] - 2024-06-12
+
+### Adicionado
+- Endpoint `/api/stats/me` para estatísticas do usuário autenticado.
+- Endpoint `/api/admin/stats/global` para estatísticas globais da plataforma.
+- Serviço de estatísticas usando Prisma ORM otimizado.
+- Estatísticas completas de leitura, incluindo páginas lidas e tempo de leitura.
+- Estatísticas de livros por status (lendo, finalizado, abandonado, planejado).
+- Lista dos usuários mais ativos da plataforma.
+
+### Atualizado
+- Documentação Swagger para novos endpoints de estatísticas.
+- Proteção dos endpoints com autenticação JWT e verificação de papel (ADMIN).
+
+### Próximos Passos
+- Exibir estatísticas nos dashboards do usuário e do admin.
+- Criar relatórios personalizados para temporada.
+- Adicionar gráficos e visualizações das estatísticas.
+
+## [0.6.3.1] - 2024-06-10
+
+### Adicionado
+- Paginação com cursor na Timeline pública (`GET /api/posts`).
+- Endpoint para listar posts de um usuário (`GET /api/posts/user/:userId`).
+- Sistema Anti-Flood: Limite de 3 posts a cada 30 minutos por usuário.
+- Validação do limite máximo de itens por página (máx: 50).
+
+### Atualizado
+- Remoção do sistema de paginação por número de página em favor da paginação por cursor.
+- Documentação Swagger para todos os novos comportamentos e endpoints.
+- Melhor retorno de metadados para facilitar implementação de scroll infinito.
+
+### Próximos Passos
+- Exibir Timeline no frontend com scroll infinito.
+- Implementar notificações para reações em posts.
+
+## [0.6.3] - 2024-06-08
+
+### Adicionado
+- Implementação do sistema de Timeline de Postagens.
+- Possibilidade de criar posts com ou sem spoiler.
+- Sistema de Reações a posts (LIKE, LOVE, LAUGH, WOW, SAD, ANGRY).
+- Proteção de rotas com autenticação JWT.
+- Paginação na listagem de posts da timeline.
+- Endpoint para remover reações de posts.
+- Atualização da documentação Swagger com todos os novos endpoints.
+
+### Próximos Passos
+- Exibir Timeline no frontend.
+- Sistema de notificações futuras baseado em reações e posts.
+
+## [0.6.2.1] - 2024-06-05
+
+### Adicionado
+- Campo `status` no modelo Book (enum BookStatus: READING, FINISHED, ABANDONED, PLANNING).
+- Novo endpoint `PATCH /api/books/:id/status` para atualizar status de leitura.
+- Validação de status nos Tipos de Quest `FINISH_BOOK` e `UPDATE_BOOK_STATUS`.
+- Atualização do Prisma Schema e da documentação Swagger.
+- Verificação de autorização (apenas o proprietário do livro pode alterar seu status).
+
+### Próximos Passos
+- Implementar sistema de Timeline e Convites de Amigos para completar QuestTypes futuros.
+
+## [0.6.2] - 2024-06-03
+
+### Adicionado
+
+#### Sistema de Quests Inteligentes 
+- Implementação do Sistema de Tipos de Quest com enum `QuestType`
+- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
+- Suporte a parâmetros personalizados para cada tipo de missão
+- Validação específica de requisitos para cada tipo de quest
+- Validação automática de conclusão de quests baseada em ações do usuário
+- Verificação inteligente de requisitos para marcar quests como concluídas
+
+#### Melhorias no Sistema de Gamificação
+- Verificação automática de atividades do usuário para validar quests
+- Novas regras para completar quests baseadas no tipo específico
+- Validação de parâmetros necessários para cada tipo de quest ao criar novas
+- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
+
+#### Atualização Modelos de Dados
+- Adição do campo `questType` em DailyQuest e WeeklyQuest
+- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
+- Manutenção do campo `isActive` para controle de quests disponíveis
+
+#### Atualização de APIs
+- APIs existentes expandidas para incluir o tipo da quest e parâmetros
+- Melhor formatação das respostas de quest com informações completas
+- Validação mais robusta de entradas com class-validator
+
+### Modificado
+- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
+- Melhoria na lógica de atribuição de quests a usuários
+- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
+- Reformulação da lógica de sorteio de quests para usuários
+
+### Próximos Passos
+- Implementação de frontend específico para o sistema de quests inteligentes
+- Painéis de administração para gerenciamento de quests com configuração visual
+- Possibilidade de configurar sequências de quests progressivas
+- Sistema de achievements automatizados baseados em tipos de quests completadas
+
+## [0.6.1] - 2024-05-28
+
+### Adicionado
+
+#### Sistema de Quests Inteligentes 
+- Implementação do Sistema de Tipos de Quest com enum `QuestType`
+- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
+- Suporte a parâmetros personalizados para cada tipo de missão
+- Validação específica de requisitos para cada tipo de quest
+- Validação automática de conclusão de quests baseada em ações do usuário
+- Verificação inteligente de requisitos para marcar quests como concluídas
+
+#### Melhorias no Sistema de Gamificação
+- Verificação automática de atividades do usuário para validar quests
+- Novas regras para completar quests baseadas no tipo específico
+- Validação de parâmetros necessários para cada tipo de quest ao criar novas
+- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
+
+#### Atualização Modelos de Dados
+- Adição do campo `questType` em DailyQuest e WeeklyQuest
+- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
+- Manutenção do campo `isActive` para controle de quests disponíveis
+
+#### Atualização de APIs
+- APIs existentes expandidas para incluir o tipo da quest e parâmetros
+- Melhor formatação das respostas de quest com informações completas
+- Validação mais robusta de entradas com class-validator
+
+### Modificado
+- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
+- Melhoria na lógica de atribuição de quests a usuários
+- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
+- Reformulação da lógica de sorteio de quests para usuários
+
+### Próximos Passos
+- Implementação de frontend específico para o sistema de quests inteligentes
+- Painéis de administração para gerenciamento de quests com configuração visual
+- Possibilidade de configurar sequências de quests progressivas
+- Sistema de achievements automatizados baseados em tipos de quests completadas 
+
+## [0.5.0] - 2024-05-22
+
+### Adicionado
+
+#### Sistema de Gamificação
+- Implementação completa do módulo `GamificationModule` para gerenciar o sistema de gamificação:
+  - Sistema de níveis e XP baseado na sequência de Fibonacci
+  - Limite máximo de nível (Level 10) com trava de XP
+  - Sistema de temporadas (Primavera, Verão, Outono, Inverno)
+  - Recompensas de Coins ao subir de nível
+  - Premiação de temporada com distribuição de Coins para os melhores jogadores
+  - Critérios de desempate no Leaderboard
+
+- Implementação do sistema de Desafios Globais e de Grupo:
+  - Modelos de desafios com XP e Coins configuráveis baseados em Fibonacci
+  - Desafios por temporada com recompensas
+  - Desafios internos de grupo com contribuição para o ranking do grupo
+  - Diferentes tipos de desafios (diários, semanais, mensais e especiais)
+
+#### Novas APIs
+- **Gamification API**:
+  - `GET /api/gamification/status`: Obter status de gamificação do usuário
+  - `GET /api/gamification/status/:userId`: Obter status de gamificação de um usuário específico
+  - `POST /api/gamification/add-xp`: Adicionar XP para um usuário
+  - `POST /api/gamification/reset-season`: Resetar temporada (admin)
+  - `GET /api/gamification/level-rewards`: Obter tabela de recompensas por nível
+  - `GET /api/gamification/challenge-options`: Obter opções de XP e Coins para desafios
+
+- **Global Challenge API**:
+  - `POST /api/challenges/global/create`: Criar novo modelo de desafio global
+  - `GET /api/challenges/global/list`: Listar todos os modelos de desafios globais
+  - `GET /api/challenges/global/list/:type`: Listar modelos de desafios globais por tipo
+  - `GET /api/challenges/global/:id`: Buscar modelo de desafio global por ID
+  - `POST /api/challenges/global/complete/:templateId`: Completar um desafio global
+
+- **Group Challenge API**:
+  - `POST /api/challenges/groups/:groupId/challenge/create`: Criar desafio de grupo baseado em modelo global
+  - `POST /api/challenges/groups/:groupId/challenge/:challengeId/complete`: Completar um desafio de grupo
+
+#### Melhorias de Segurança e Validação
+- Validação de entradas usando class-validator para todos os novos endpoints
+- Proteção de rotas sensíveis usando JwtAuthGuard
+- Verificações para evitar XP infinito e respeitar o nível máximo
+- Validação para garantir que XP e Coins em desafios sigam as sequências de Fibonacci
+
+#### Documentação
+- Documentação Swagger atualizada para todos os novos endpoints
+- Atualização do CHANGELOG com as novas implementações
+- Descrições detalhadas de parâmetros e respostas
+- Exemplos de payload para todos os endpoints
+
+### Próximos Passos
+- Implementação do frontend em Next.js para o sistema de gamificação
+- Interface para visualização de progresso, níveis e badges
+- Dashboard de gamificação para usuários
+- Sistema de notificações para conquistas e subidas de nível
+
 ## [0.4.0] - 2024-05-15
 
 ### Adicionado
@@ -246,220 +463,3 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ### Correções
 - N/A (versão inicial)
-
-## [0.6.5.1] - 2024-06-15
-
-### Adicionado
-- Endpoint `/api/books/search` para busca de livros locais e externos (OpenLibrary e Google Books).
-- Salvamento automático de livros no banco de dados do Readsy.
-- Estrutura preparada para futura atualização de livros incompletos.
-- Novos campos no modelo Book: publishedDate, description, publisher e language.
-- Indexação de ISBN para buscas mais rápidas.
-
-### Atualizado
-- Documentação Swagger para novo endpoint de busca de livros.
-- Serviço de livros com validação e prevenção de duplicatas.
-
-### Próximos Passos
-- Implementar atualização periódica de livros com dados incompletos.
-- Adicionar suporte a gêneros e editoras na busca.
-
-## [0.6.5] - 2024-06-12
-
-### Adicionado
-- Endpoint `/api/stats/me` para estatísticas do usuário autenticado.
-- Endpoint `/api/admin/stats/global` para estatísticas globais da plataforma.
-- Serviço de estatísticas usando Prisma ORM otimizado.
-- Estatísticas completas de leitura, incluindo páginas lidas e tempo de leitura.
-- Estatísticas de livros por status (lendo, finalizado, abandonado, planejado).
-- Lista dos usuários mais ativos da plataforma.
-
-### Atualizado
-- Documentação Swagger para novos endpoints de estatísticas.
-- Proteção dos endpoints com autenticação JWT e verificação de papel (ADMIN).
-
-### Próximos Passos
-- Exibir estatísticas nos dashboards do usuário e do admin.
-- Criar relatórios personalizados para temporada.
-- Adicionar gráficos e visualizações das estatísticas.
-
-## [0.6.3.1] - 2024-06-10
-
-### Adicionado
-- Paginação com cursor na Timeline pública (`GET /api/posts`).
-- Endpoint para listar posts de um usuário (`GET /api/posts/user/:userId`).
-- Sistema Anti-Flood: Limite de 3 posts a cada 30 minutos por usuário.
-- Validação do limite máximo de itens por página (máx: 50).
-
-### Atualizado
-- Remoção do sistema de paginação por número de página em favor da paginação por cursor.
-- Documentação Swagger para todos os novos comportamentos e endpoints.
-- Melhor retorno de metadados para facilitar implementação de scroll infinito.
-
-### Próximos Passos
-- Exibir Timeline no frontend com scroll infinito.
-- Implementar notificações para reações em posts.
-
-## [0.6.3] - 2024-06-08
-
-### Adicionado
-- Implementação do sistema de Timeline de Postagens.
-- Possibilidade de criar posts com ou sem spoiler.
-- Sistema de Reações a posts (LIKE, LOVE, LAUGH, WOW, SAD, ANGRY).
-- Proteção de rotas com autenticação JWT.
-- Paginação na listagem de posts da timeline.
-- Endpoint para remover reações de posts.
-- Atualização da documentação Swagger com todos os novos endpoints.
-
-### Próximos Passos
-- Exibir Timeline no frontend.
-- Sistema de notificações futuras baseado em reações e posts.
-
-## [0.6.2.1] - 2024-06-05
-
-### Adicionado
-- Campo `status` no modelo Book (enum BookStatus: READING, FINISHED, ABANDONED, PLANNING).
-- Novo endpoint `PATCH /api/books/:id/status` para atualizar status de leitura.
-- Validação de status nos Tipos de Quest `FINISH_BOOK` e `UPDATE_BOOK_STATUS`.
-- Atualização do Prisma Schema e da documentação Swagger.
-- Verificação de autorização (apenas o proprietário do livro pode alterar seu status).
-
-### Próximos Passos
-- Implementar sistema de Timeline e Convites de Amigos para completar QuestTypes futuros.
-
-## [0.6.2] - 2024-06-03
-
-### Adicionado
-
-#### Sistema de Quests Inteligentes 
-- Implementação do Sistema de Tipos de Quest com enum `QuestType`
-- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
-- Suporte a parâmetros personalizados para cada tipo de missão
-- Validação específica de requisitos para cada tipo de quest
-- Validação automática de conclusão de quests baseada em ações do usuário
-- Verificação inteligente de requisitos para marcar quests como concluídas
-
-#### Melhorias no Sistema de Gamificação
-- Verificação automática de atividades do usuário para validar quests
-- Novas regras para completar quests baseadas no tipo específico
-- Validação de parâmetros necessários para cada tipo de quest ao criar novas
-- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
-
-#### Atualização Modelos de Dados
-- Adição do campo `questType` em DailyQuest e WeeklyQuest
-- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
-- Manutenção do campo `isActive` para controle de quests disponíveis
-
-#### Atualização de APIs
-- APIs existentes expandidas para incluir o tipo da quest e parâmetros
-- Melhor formatação das respostas de quest com informações completas
-- Validação mais robusta de entradas com class-validator
-
-### Modificado
-- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
-- Melhoria na lógica de atribuição de quests a usuários
-- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
-- Reformulação da lógica de sorteio de quests para usuários
-
-### Próximos Passos
-- Implementação de frontend específico para o sistema de quests inteligentes
-- Painéis de administração para gerenciamento de quests com configuração visual
-- Possibilidade de configurar sequências de quests progressivas
-- Sistema de achievements automatizados baseados em tipos de quests completadas
-
-## [0.5.0] - 2024-05-22
-
-### Adicionado
-
-#### Sistema de Gamificação
-- Implementação completa do módulo `GamificationModule` para gerenciar o sistema de gamificação:
-  - Sistema de níveis e XP baseado na sequência de Fibonacci
-  - Limite máximo de nível (Level 10) com trava de XP
-  - Sistema de temporadas (Primavera, Verão, Outono, Inverno)
-  - Recompensas de Coins ao subir de nível
-  - Premiação de temporada com distribuição de Coins para os melhores jogadores
-  - Critérios de desempate no Leaderboard
-
-- Implementação do sistema de Desafios Globais e de Grupo:
-  - Modelos de desafios com XP e Coins configuráveis baseados em Fibonacci
-  - Desafios por temporada com recompensas
-  - Desafios internos de grupo com contribuição para o ranking do grupo
-  - Diferentes tipos de desafios (diários, semanais, mensais e especiais)
-
-#### Novas APIs
-- **Gamification API**:
-  - `GET /api/gamification/status`: Obter status de gamificação do usuário
-  - `GET /api/gamification/status/:userId`: Obter status de gamificação de um usuário específico
-  - `POST /api/gamification/add-xp`: Adicionar XP para um usuário
-  - `POST /api/gamification/reset-season`: Resetar temporada (admin)
-  - `GET /api/gamification/level-rewards`: Obter tabela de recompensas por nível
-  - `GET /api/gamification/challenge-options`: Obter opções de XP e Coins para desafios
-
-- **Global Challenge API**:
-  - `POST /api/challenges/global/create`: Criar novo modelo de desafio global
-  - `GET /api/challenges/global/list`: Listar todos os modelos de desafios globais
-  - `GET /api/challenges/global/list/:type`: Listar modelos de desafios globais por tipo
-  - `GET /api/challenges/global/:id`: Buscar modelo de desafio global por ID
-  - `POST /api/challenges/global/complete/:templateId`: Completar um desafio global
-
-- **Group Challenge API**:
-  - `POST /api/challenges/groups/:groupId/challenge/create`: Criar desafio de grupo baseado em modelo global
-  - `POST /api/challenges/groups/:groupId/challenge/:challengeId/complete`: Completar um desafio de grupo
-
-#### Melhorias de Segurança e Validação
-- Validação de entradas usando class-validator para todos os novos endpoints
-- Proteção de rotas sensíveis usando JwtAuthGuard
-- Verificações para evitar XP infinito e respeitar o nível máximo
-- Validação para garantir que XP e Coins em desafios sigam as sequências de Fibonacci
-
-#### Documentação
-- Documentação Swagger atualizada para todos os novos endpoints
-- Atualização do CHANGELOG com as novas implementações
-- Descrições detalhadas de parâmetros e respostas
-- Exemplos de payload para todos os endpoints
-
-### Próximos Passos
-- Implementação do frontend em Next.js para o sistema de gamificação
-- Interface para visualização de progresso, níveis e badges
-- Dashboard de gamificação para usuários
-- Sistema de notificações para conquistas e subidas de nível
-
-## [0.6.1] - 2024-05-28
-
-### Adicionado
-
-#### Sistema de Quests Inteligentes 
-- Implementação do Sistema de Tipos de Quest com enum `QuestType`
-- Adição de 10 tipos distintos de quests (CHECKIN_DAY, READ_PAGES, FINISH_BOOK, etc.)
-- Suporte a parâmetros personalizados para cada tipo de missão
-- Validação específica de requisitos para cada tipo de quest
-- Validação automática de conclusão de quests baseada em ações do usuário
-- Verificação inteligente de requisitos para marcar quests como concluídas
-
-#### Melhorias no Sistema de Gamificação
-- Verificação automática de atividades do usuário para validar quests
-- Novas regras para completar quests baseadas no tipo específico
-- Validação de parâmetros necessários para cada tipo de quest ao criar novas
-- Suporte a valores dinâmicos como alvo para quests (páginas lidas, livros completados, etc.)
-
-#### Atualização Modelos de Dados
-- Adição do campo `questType` em DailyQuest e WeeklyQuest
-- Adição do campo `parameters` do tipo Json para armazenar configurações personalizadas
-- Manutenção do campo `isActive` para controle de quests disponíveis
-
-#### Atualização de APIs
-- APIs existentes expandidas para incluir o tipo da quest e parâmetros
-- Melhor formatação das respostas de quest com informações completas
-- Validação mais robusta de entradas com class-validator
-
-### Modificado
-- Serviço de Quests completamente refatorado para utilizar validação baseada em tipos
-- Melhoria na lógica de atribuição de quests a usuários
-- Sistema de verificação de conclusão de quests agora considera parâmetros dinâmicos
-- Reformulação da lógica de sorteio de quests para usuários
-
-### Próximos Passos
-- Implementação de frontend específico para o sistema de quests inteligentes
-- Painéis de administração para gerenciamento de quests com configuração visual
-- Possibilidade de configurar sequências de quests progressivas
-- Sistema de achievements automatizados baseados em tipos de quests completadas 
