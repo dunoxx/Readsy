@@ -463,3 +463,29 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ### Correções
 - N/A (versão inicial)
+
+## Fase 0.7 - Implementação do Módulo de Leaderboard - 20 de julho de 2024
+
+### Adicionado
+- Implementação completa do módulo de leaderboard (`LeaderboardModule`)
+- Endpoint para ranking global: `GET /api/leaderboard/global` que retorna os top 100 usuários
+- Endpoint para ranking de grupos: `GET /api/leaderboard/group/:groupId` que retorna os top 100 usuários de um grupo
+- Endpoint para obter a posição do usuário autenticado: `GET /api/leaderboard/me`
+- Endpoint para obter a posição de um usuário específico: `GET /api/leaderboard/user/:userId`
+- Sistema de reset de temporada baseado nas estações do ano (Primavera, Verão, Outono, Inverno)
+- Sistema de premiação automática no reset de temporada:
+  - 1º lugar: +4000 moedas
+  - 2º lugar: +2500 moedas
+  - 3º lugar: +1500 moedas
+  - 4º ao 10º lugares: +1000 moedas cada
+  - 11º ao 100º lugares: +100 moedas cada
+- Critérios complexos de desempate para o ranking (XP, data da última evolução, data de criação, livros, grupos)
+- Endpoint de administração para resetar manualmente a temporada: `POST /api/leaderboard/reset-season`
+
+### Modificado
+- Atualização da estrutura do serviço de leaderboard para utilizar dados diretamente dos usuários
+- Implementado sistema de tratamento de empates técnicos para compartilhamento de posições
+- Otimização nas queries do sistema de ranking para melhor desempenho
+
+## Versões Anteriores
+<!-- aqui viriam os changelogs anteriores -->

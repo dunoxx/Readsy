@@ -1,7 +1,8 @@
 import { Controller, Get, Param, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { LeaderboardService } from './leaderboard.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { Request } from 'express';
 
 interface RequestWithUser extends Request {
@@ -15,60 +16,92 @@ interface RequestWithUser extends Request {
 export class LeaderboardController {
   constructor(private readonly leaderboardService: LeaderboardService) {}
 
-  @ApiOperation({ summary: 'Obter ranking global' })
+  @ApiOperation({ summary: 'Obter ranking global dos 100 primeiros usuários' })
   @ApiResponse({ 
     status: 200, 
-    description: 'Ranking retornado com sucesso'
+    description: 'Ranking global retornado com sucesso',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          position: { type: 'number' },
+          userId: { type: 'string' },
+          displayName: { type: 'string' },
+          profilePicture: { type: 'string' },
+          level: { type: 'number' },
+          seasonXP: { type: 'number' },
+          totalBooks: { type: 'number' },
+          totalGroups: { type: 'number' },
+        }
+      }
+    }
   })
-  @ApiQuery({
-    name: 'season',
-    required: false,
-    description: 'Temporada do ranking (ex: 2023-Q2)'
-  })
-  @Get()
-  getGlobalRanking(@Param('season') season?: string) {
-    return this.leaderboardService.getGlobalRanking(season);
+  @Get('global')
+  getGlobalRanking() {
+    return this.leaderboardService.getGlobalRanking();
   }
 
-  @ApiOperation({ summary: 'Obter ranking de um usuário específico' })
+  @ApiOperation({ summary: 'Obter ranking dos 100 primeiros usuários de um grupo específico' })
   @ApiResponse({ 
     status: 200, 
-    description: 'Ranking do usuário retornado com sucesso'
+    description: 'Ranking do grupo retornado com sucesso'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Grupo não encontrado'
+  })
+  @ApiParam({
+    name: 'groupId',
+    description: 'ID do grupo',
+    type: 'string'
+  })
+  @Get('group/:groupId')
+  getGroupRanking(@Param('groupId') groupId: string) {
+    return this.leaderboardService.getGroupRanking(groupId);
+  }
+
+  @ApiOperation({ summary: 'Obter posição do usuário autenticado no ranking global' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Posição no ranking retornada com sucesso'
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMyRanking(@Req() req: RequestWithUser) {
+    return this.leaderboardService.getUserRanking(req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Obter posição de um usuário específico no ranking global' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Posição no ranking retornada com sucesso'
   })
   @ApiResponse({ 
     status: 404, 
     description: 'Usuário não encontrado'
   })
-  @ApiQuery({
-    name: 'season',
-    required: false,
-    description: 'Temporada do ranking (ex: 2023-Q2)'
+  @ApiParam({
+    name: 'userId',
+    description: 'ID do usuário',
+    type: 'string'
   })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('user/:userId')
-  getUserRanking(
-    @Param('userId') userId: string,
-    @Param('season') season?: string
-  ) {
-    return this.leaderboardService.getUserRanking(userId, season);
+  getUserRanking(@Param('userId') userId: string) {
+    return this.leaderboardService.getUserRanking(userId);
   }
 
-  @ApiOperation({ summary: 'Obter ranking do usuário autenticado' })
+  @ApiOperation({ summary: 'Resetar a temporada atual (somente admin)' })
   @ApiResponse({ 
     status: 200, 
-    description: 'Ranking do usuário retornado com sucesso'
-  })
-  @ApiQuery({
-    name: 'season',
-    required: false,
-    description: 'Temporada do ranking (ex: 2023-Q2)'
+    description: 'Temporada resetada com sucesso'
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  getMyRanking(@Req() req: RequestWithUser, @Param('season') season?: string) {
-    return this.leaderboardService.getUserRanking(req.user.id, season);
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Post('reset-season')
+  resetSeason() {
+    return this.leaderboardService.resetSeason();
   }
 
   @ApiOperation({ summary: 'Adicionar pontos para um usuário (apenas para uso interno/testes)' })
