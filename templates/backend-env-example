@@ -1,0 +1,40 @@
+# Configurações do Backend (NestJS)
+# Renomeie este arquivo para .env e preencha os valores
+
+# Servidor
+NODE_ENV=development
+PORT=3001
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+
+# Database
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/readsy?schema=public
+
+# JWT Auth
+JWT_ACCESS_SECRET=seu_segredo_jwt_access_muito_seguro
+JWT_REFRESH_SECRET=seu_segredo_jwt_refresh_muito_seguro
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+
+# Google OAuth
+GOOGLE_CLIENT_ID=seu_client_id_do_google
+GOOGLE_CLIENT_SECRET=seu_client_secret_do_google
+GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
+
+# APIs Externas
+OPEN_LIBRARY_API_URL=https://openlibrary.org/api
+GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1
+BOOK_PLACEHOLDER_COVER_URL=https://readsy.app/placeholder-cover.jpg
+
+# Posts e Timeline
+POST_MAX_PER_PAGE=50
+POST_RATE_LIMIT=3
+POST_RATE_LIMIT_WINDOW=30
+
+# Gamificação
+GAMIFICATION_MAX_LEVEL=10
+GAMIFICATION_MAX_XP=5500
+GAMIFICATION_BASE_XP_PER_CHECKIN=10
+GAMIFICATION_XP_PER_PAGE=1
+GAMIFICATION_XP_PER_MINUTE=2 

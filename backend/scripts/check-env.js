@@ -68,6 +68,32 @@ if (missingVars.length > 0) {
     console.log('ℹ️  FRONTEND_URL não definida, usando valor padrão: http://localhost:3000');
   }
   
+  // Verificar variáveis de APIs externas
+  if (!process.env.OPEN_LIBRARY_API_URL) {
+    console.log('ℹ️  OPEN_LIBRARY_API_URL não definida, usando valor padrão: https://openlibrary.org/api');
+  }
+  
+  if (!process.env.GOOGLE_BOOKS_API_URL) {
+    console.log('ℹ️  GOOGLE_BOOKS_API_URL não definida, usando valor padrão: https://www.googleapis.com/books/v1');
+  }
+  
+  if (!process.env.BOOK_PLACEHOLDER_COVER_URL) {
+    console.log('ℹ️  BOOK_PLACEHOLDER_COVER_URL não definida, usando valor padrão: https://readsy.app/placeholder-cover.jpg');
+  }
+  
+  // Verificar variáveis de posts
+  if (!process.env.POST_MAX_PER_PAGE) {
+    console.log('ℹ️  POST_MAX_PER_PAGE não definida, usando valor padrão: 50');
+  }
+  
+  if (!process.env.POST_RATE_LIMIT) {
+    console.log('ℹ️  POST_RATE_LIMIT não definida, usando valor padrão: 3');
+  }
+  
+  if (!process.env.POST_RATE_LIMIT_WINDOW) {
+    console.log('ℹ️  POST_RATE_LIMIT_WINDOW não definida, usando valor padrão: 30');
+  }
+  
   // Verificar variáveis de gamificação
   if (!process.env.GAMIFICATION_MAX_LEVEL) {
     console.log('ℹ️  GAMIFICATION_MAX_LEVEL não definida, usando valor padrão: 10');

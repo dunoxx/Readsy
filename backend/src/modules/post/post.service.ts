@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
@@ -6,12 +7,23 @@ import { CreateReactionDto } from './dtos/create-reaction.dto';
 
 @Injectable()
 export class PostService {
-  constructor(private prisma: PrismaService) {}
+  private readonly MAX_POSTS_PER_PAGE: number;
+  private readonly MAX_POSTS_RATE_LIMIT: number;
+  private readonly RATE_LIMIT_WINDOW_MINUTES: number;
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {
+    this.MAX_POSTS_PER_PAGE = this.configService.get<number>('POST_MAX_PER_PAGE', 50);
+    this.MAX_POSTS_RATE_LIMIT = this.configService.get<number>('POST_RATE_LIMIT', 3);
+    this.RATE_LIMIT_WINDOW_MINUTES = this.configService.get<number>('POST_RATE_LIMIT_WINDOW', 30);
+  }
 
   // Buscar todos os posts (timeline pública) com paginação por cursor
   async findAll(limit = 10, cursor?: string) {
     // Validar o limite máximo de posts por requisição
-    const take = Math.min(limit, 50);
+    const take = Math.min(limit, this.MAX_POSTS_PER_PAGE);
 
     // Configurar condição para busca com cursor
     const cursorCondition = cursor
@@ -86,7 +98,7 @@ export class PostService {
   // Buscar posts de um usuário específico
   async findByUser(userId: string, limit = 10, cursor?: string) {
     // Validar o limite máximo de posts por requisição
-    const take = Math.min(limit, 50);
+    const take = Math.min(limit, this.MAX_POSTS_PER_PAGE);
 
     // Verificar se o usuário existe
     const user = await this.prisma.user.findUnique({
@@ -208,21 +220,22 @@ export class PostService {
 
   // Verificar limite de posts (anti-flood)
   async checkPostRateLimit(userId: string): Promise<boolean> {
-    // Definir período de 30 minutos atrás
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    // Definir período com base na configuração
+    const limitWindowMs = this.RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
+    const timeWindowStart = new Date(Date.now() - limitWindowMs);
     
-    // Contar posts do usuário nos últimos 30 minutos
+    // Contar posts do usuário no período configurado
     const recentPostsCount = await this.prisma.post.count({
       where: {
         userId,
         createdAt: {
-          gte: thirtyMinutesAgo,
+          gte: timeWindowStart,
         },
       },
     });
     
-    // Verificar se o usuário já atingiu o limite de 3 posts
-    return recentPostsCount < 3;
+    // Verificar se o usuário ainda não atingiu o limite configurado
+    return recentPostsCount < this.MAX_POSTS_RATE_LIMIT;
   }
 
   // Criar novo post
@@ -231,7 +244,7 @@ export class PostService {
     const canPost = await this.checkPostRateLimit(userId);
     if (!canPost) {
       throw new HttpException(
-        'Você atingiu o limite de 3 posts a cada 30 minutos.',
+        `Você atingiu o limite de ${this.MAX_POSTS_RATE_LIMIT} posts a cada ${this.RATE_LIMIT_WINDOW_MINUTES} minutos.`,
         HttpStatus.TOO_MANY_REQUESTS
       );
     }

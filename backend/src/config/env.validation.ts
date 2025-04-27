@@ -25,6 +25,12 @@ export const envSchema = z.object({
   // API externas
   OPEN_LIBRARY_API_URL: z.string().default('https://openlibrary.org/api'),
   GOOGLE_BOOKS_API_URL: z.string().default('https://www.googleapis.com/books/v1'),
+  BOOK_PLACEHOLDER_COVER_URL: z.string().default('https://readsy.app/placeholder-cover.jpg'),
+  
+  // Posts e Timeline
+  POST_MAX_PER_PAGE: z.coerce.number().default(50),
+  POST_RATE_LIMIT: z.coerce.number().default(3),
+  POST_RATE_LIMIT_WINDOW: z.coerce.number().default(30),
   
   // Gamificação
   GAMIFICATION_MAX_LEVEL: z.coerce.number().default(10),

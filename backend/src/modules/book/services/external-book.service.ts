@@ -1,14 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { CreateBookDto } from '../dtos/create-book.dto';
 
 @Injectable()
 export class ExternalBookService {
   private readonly logger = new Logger(ExternalBookService.name);
-  private readonly openLibraryUrl = 'https://openlibrary.org/api/books';
-  private readonly openLibrarySearchUrl = 'https://openlibrary.org/search.json';
-  private readonly googleBooksUrl = 'https://www.googleapis.com/books/v1/volumes';
-  private readonly placeholderCover = 'https://readsy.app/placeholder-cover.jpg';
+  private readonly openLibraryUrl: string;
+  private readonly openLibrarySearchUrl: string;
+  private readonly googleBooksUrl: string;
+  private readonly placeholderCover: string;
+
+  constructor(private configService: ConfigService) {
+    const openLibraryBaseUrl = this.configService.get<string>('OPEN_LIBRARY_API_URL', 'https://openlibrary.org/api');
+    this.openLibraryUrl = `${openLibraryBaseUrl}/books`;
+    this.openLibrarySearchUrl = 'https://openlibrary.org/search.json';
+    this.googleBooksUrl = this.configService.get<string>('GOOGLE_BOOKS_API_URL', 'https://www.googleapis.com/books/v1/volumes');
+    this.placeholderCover = this.configService.get<string>('BOOK_PLACEHOLDER_COVER_URL', 'https://readsy.app/placeholder-cover.jpg');
+  }
 
   /**
    * Busca um livro pela API do OpenLibrary usando ISBN
