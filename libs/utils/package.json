@@ -1,0 +1,9 @@
+{
+  "name": "@readsy/utils",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "private": true,
+  "description": "Funções utilitárias e helpers do Readsy.",
+  "license": "MIT"
+} 
