@@ -1,0 +1,383 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  password            String
+  username            String   @unique
+  displayName         String
+  avatar              String?
+  frame               String?
+  background          String?
+  totalXP             Int      @default(0)
+  seasonXP            Int      @default(0)
+  coins               Int      @default(0)
+  isPremium           Boolean  @default(false)
+  wishlistSlug        String?  @unique // Slug público para wishlist
+  countryId           String?
+  languageId          String?
+  birthDate           DateTime?
+  isPrivate           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  country             Country?  @relation(fields: [countryId], references: [id], map: "fk_user_country")
+  language            Language? @relation(fields: [languageId], references: [id], map: "fk_user_language")
+
+  userInventory       UserInventory[]
+  userGroupChallenges UserGroupChallenge[]
+  booksAdded          Book[]        @relation("BooksAddedByUser")
+  groupMemberships    GroupMember[]
+  groupAdmins         GroupAdmin[]
+  groupModerators     GroupModerator[]
+  groupsOwned         Group[]       @relation("GroupOwner")
+  shelves             Shelf[]
+  checkins            Checkin[]
+  questInstances      QuestInstance[]
+  userAchievements    UserAchievement[]
+  leaderboardEntries  LeaderboardEntry[]
+  suggestedBooks      SuggestedBook[] @relation("BooksSuggestedByUser")
+  reviewedBooks       SuggestedBook[] @relation("BooksReviewedByUser")
+  userFavorites       UserFavorite[]
+  userWishlist        UserWishlist[]
+
+  followers           UserFollow[]  @relation("FollowersRelation")
+  following           UserFollow[]  @relation("FollowingRelation")
+}
+
+model UserFollow {
+  id           String   @id @default(uuid())
+  followerId   String
+  followingId  String
+
+  follower     User     @relation("FollowingRelation", fields: [followerId], references: [id], map: "fk_follow_follower")
+  following    User     @relation("FollowersRelation", fields: [followingId], references: [id], map: "fk_follow_following")
+
+  createdAt    DateTime @default(now())
+}
+
+model Shelf {
+  id         String   @id @default(uuid())
+  name       String
+  emoji      String?
+  color      String?
+  isWishlist Boolean  @default(false)
+  isPublic   Boolean  @default(true)
+  ownerId    String
+  createdAt  DateTime @default(now())
+
+  owner      User     @relation(fields: [ownerId], references: [id], map: "fk_shelf_owner")
+  booksOnShelf BookOnShelf[]
+}
+
+model BookOnShelf {
+  id        String   @id @default(uuid())
+  shelfId   String
+  bookId    String
+  order     Int      @default(0)
+  addedAt   DateTime @default(now())
+  read      Boolean  @default(false)
+  rating    Float?
+
+  shelf     Shelf    @relation(fields: [shelfId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([shelfId, bookId])
+}
+
+model Book {
+  id                  String   @id @default(uuid())
+  title               String
+  author              String
+  isbn                String?  @unique
+
+  category            String?
+  coverUrl            String?
+  totalPages          Int?
+  amazonAffiliateUrl  String?
+  status              String?
+  rating              Float?
+  addedById           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  addedBy             User?    @relation("BooksAddedByUser", fields: [addedById], references: [id], map: "fk_book_added_by")
+  groupChallenges     GroupChallenge[]
+  booksOnShelf        BookOnShelf[]
+  checkins            Checkin[]
+  userFavorites       UserFavorite[]
+  userWishlist        UserWishlist[]
+}
+
+model SuggestedBook {
+  id                  String   @id @default(uuid())
+  title               String
+  author              String
+  isbn                String?
+  publisher           String?
+  totalPages          Int?
+  edition             String?
+  coverUrl            String?
+  status              String   @default("pending") // pending, approved, rejected
+  suggestedById       String
+  reviewedBy          String?
+  reviewedAt          DateTime?
+  reviewNotes         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  suggestedBy         User     @relation("BooksSuggestedByUser", fields: [suggestedById], references: [id], map: "fk_suggested_book_user")
+  reviewedByUser      User?    @relation("BooksReviewedByUser", fields: [reviewedBy], references: [id], map: "fk_suggested_book_reviewer")
+}
+
+model Checkin {
+  id           String   @id @default(uuid())
+  bookId       String
+  userId       String
+  pagesRead    Int
+  currentPage  Int
+  duration     Int?
+  audioNoteUrl String?
+  createdAt    DateTime @default(now())
+
+  book         Book     @relation(fields: [bookId], references: [id], map: "fk_checkin_book")
+  user         User     @relation(fields: [userId], references: [id], map: "fk_checkin_user")
+}
+
+model Group {
+  id               String   @id @default(uuid())
+  name             String
+  description      String?
+  imageUrl         String?
+  isPublic         Boolean  @default(true)
+  requiresApproval Boolean  @default(false)
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  owner            User     @relation("GroupOwner", fields: [ownerId], references: [id], map: "fk_group_owner")
+  groupMemberships GroupMember[]
+  groupAdmins      GroupAdmin[]
+  groupModerators  GroupModerator[]
+  groupChallenges  GroupChallenge[]
+  leaderboards     Leaderboard[]
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  userId    String
+  groupId   String
+  joinedAt  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], map: "fk_group_member_user")
+  group     Group    @relation(fields: [groupId], references: [id], map: "fk_group_member_group")
+}
+
+model GroupAdmin {
+  id      String @id @default(uuid())
+  userId  String
+  groupId String
+
+  user    User   @relation(fields: [userId], references: [id], map: "fk_group_admin_user")
+  group   Group  @relation(fields: [groupId], references: [id], map: "fk_group_admin_group")
+}
+
+model GroupModerator {
+  id      String @id @default(uuid())
+  userId  String
+  groupId String
+
+  user    User   @relation(fields: [userId], references: [id], map: "fk_group_mod_user")
+  group   Group  @relation(fields: [groupId], references: [id], map: "fk_group_mod_group")
+}
+
+model Challenge {
+  id               String   @id @default(uuid())
+  name             String
+  description      String?
+  icon             String?
+  baseXpReward     Int      @default(0)
+  baseCoinsReward  Int      @default(0)
+  type             String
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model GroupChallenge {
+  id                  String   @id @default(uuid())
+  groupId             String
+  title               String
+  description         String?
+  type                String
+  target              Int
+  bookId              String?
+  pointsReward        Int      @default(0)
+  frequency           String?
+  createdAt           DateTime @default(now())
+
+  group               Group    @relation(fields: [groupId], references: [id], map: "fk_group_challenge_group")
+  book                Book?    @relation(fields: [bookId], references: [id], map: "fk_group_challenge_book")
+  userGroupChallenges UserGroupChallenge[]
+}
+
+model UserGroupChallenge {
+  id                String           @id @default(uuid())
+  userId            String
+  groupChallengeId  String
+  completedAt       DateTime?
+
+  user              User             @relation(fields: [userId], references: [id], map: "fk_ugc_user")
+  groupChallenge    GroupChallenge  @relation(fields: [groupChallengeId], references: [id], map: "fk_ugc_group_challenge")
+}
+
+model ShopItem {
+  id            String        @id @default(uuid())
+  name          String
+  type          String
+  price         Int
+  emojiIcon     String?
+  description   String?
+
+  userInventory UserInventory[]
+}
+
+model UserInventory {
+  id         String   @id @default(uuid())
+  userId     String
+  itemId     String
+  acquiredAt DateTime @default(now())
+  isActive   Boolean  @default(false)
+  expiresAt  DateTime?
+
+  user       User     @relation(fields: [userId], references: [id], map: "fk_inventory_user")
+  item       ShopItem @relation(fields: [itemId], references: [id], map: "fk_inventory_item")
+}
+
+model Country {
+  id    String @id @default(uuid())
+  name  String
+  code  String @unique
+  flag  String
+
+  users User[]
+}
+
+model Language {
+  id    String @id @default(uuid())
+  name  String
+  code  String @unique
+  flag  String
+
+  users User[]
+}
+
+model QuestTemplate {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  type          String   // daily, weekly, event, etc
+  xpReward      Int
+  coinsReward   Int
+  season        String   // temporada/trimestre
+  frequency     String   // daily, weekly, event
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  questInstances QuestInstance[]
+}
+
+model QuestInstance {
+  id            String   @id @default(uuid())
+  userId        String
+  templateId    String
+  status        String   // pending, completed, expired
+  progress      Int      @default(0)
+  completedAt   DateTime?
+  startedAt     DateTime @default(now())
+  expiresAt     DateTime?
+
+  user          User           @relation(fields: [userId], references: [id], map: "fk_quest_user")
+  template      QuestTemplate  @relation(fields: [templateId], references: [id], map: "fk_quest_template")
+}
+
+model Achievement {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  title         String
+  description   String
+  icon          String?
+  xpReward      Int      @default(0)
+  coinsReward   Int      @default(0)
+  createdAt     DateTime @default(now())
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id             String   @id @default(uuid())
+  userId         String
+  achievementId  String
+  achievedAt     DateTime @default(now())
+
+  user           User         @relation(fields: [userId], references: [id], map: "fk_user_achievement_user")
+  achievement    Achievement  @relation(fields: [achievementId], references: [id], map: "fk_user_achievement_achievement")
+}
+
+model Leaderboard {
+  id            String   @id @default(uuid())
+  type          String   // global, group
+  groupId       String?
+  season        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entries       LeaderboardEntry[]
+  group         Group?   @relation(fields: [groupId], references: [id], map: "fk_leaderboard_group")
+}
+
+model LeaderboardEntry {
+  id             String   @id @default(uuid())
+  leaderboardId  String
+  userId         String
+  rank           Int
+  score          Int
+  tieBreaker     Int?
+  rewardGiven    Boolean  @default(false)
+
+  leaderboard    Leaderboard @relation(fields: [leaderboardId], references: [id], map: "fk_leaderboard_entry_leaderboard")
+  user           User        @relation(fields: [userId], references: [id], map: "fk_leaderboard_entry_user")
+}
+
+model UserFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  bookId    String
+  rating    Float?   // Nota do usuário para o livro favorito
+  read      Boolean  @default(false) // Se o usuário já leu o livro
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], map: "fk_user_favorite_user")
+  book      Book     @relation(fields: [bookId], references: [id], map: "fk_user_favorite_book")
+
+  @@unique([userId, bookId])
+}
+
+model UserWishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  bookId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], map: "fk_user_wishlist_user")
+  book      Book     @relation(fields: [bookId], references: [id], map: "fk_user_wishlist_book")
+
+  @@unique([userId, bookId])
+}

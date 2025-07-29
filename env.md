@@ -1,19 +1,33 @@
-# Variáveis de Ambiente — Readsy
+# Exemplo de .env para Readsy API
 
-## apps/web
-- `NEXT_PUBLIC_API_URL` — URL base da API para o frontend web
-- `NEXT_PUBLIC_APP_URL` — URL pública do frontend web
+# String de conexão do PostgreSQL
+DATABASE_URL=postgresql://readsy:readsy@localhost:5432/readsy_db
 
-## apps/admin
-- `NEXT_PUBLIC_API_URL` — URL base da API para o painel admin
-- `NEXT_PUBLIC_ADMIN_URL` — URL pública do painel admin
+# Segredo para geração/validação dos tokens JWT de acesso
+JWT_SECRET=um-segredo-super-seguro
 
-## apps/api
-- `DATABASE_URL` — String de conexão do PostgreSQL
-- `REDIS_URL` — String de conexão do Redis
-- `JWT_SECRET` — Segredo para geração/validação de tokens JWT
-- `API_URL` — URL pública da API
+# Segredo para geração/validação dos refresh tokens
+JWT_REFRESH_SECRET=um-refresh-segredo-super-seguro
 
-## Observações
-- Nunca versionar arquivos .env com valores reais.
-- Sempre consulte este arquivo para saber o que precisa ser configurado em cada ambiente. 
+# Tempo de expiração do token JWT (ex: 15m, 1h, 7d)
+JWT_EXPIRES_IN=1h
+
+# String de conexão do Redis
+REDIS_URL=redis://localhost:6379
+
+# URL pública da API
+API_URL=http://localhost:3333
+
+# Porta para o backend (opcional)
+PORT=3333
+
+# Ambiente de execução (development, production, etc)
+NODE_ENV=development
+
+# --- OAuth2 Google ---
+# Client ID do Google Cloud Console
+GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+# Client Secret do Google Cloud Console
+GOOGLE_CLIENT_SECRET=seu-client-secret
+# URL de callback configurada no Google Cloud Console
+GOOGLE_CALLBACK_URL=http://localhost:3333/api/v1/auth/google/callback 
